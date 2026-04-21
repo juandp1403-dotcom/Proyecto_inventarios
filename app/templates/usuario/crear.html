@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear Usuario{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h2 class="card-title mb-4">Crear usuario</h2>
+                <form action="/usuario/crear" method="post">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" id="nombre" name="nombre" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Correo electrónico</label>
+                        <input type="email" id="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <input type="password" id="password" name="password" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rol" class="form-label">Rol</label>
+                        <select id="rol" name="rol" class="form-select" required>
+                            {% if current_role == 'admin' %}
+                            <option value="aprendiz">Aprendiz</option>
+                            <option value="instructor">Instructor</option>
+                            <option value="auditor">Auditor</option>
+                            <option value="revisor">Revisor</option>
+                            <option value="admin">Admin</option>
+                            {% elif current_role == 'auditor' %}
+                            <option value="aprendiz">Aprendiz</option>
+                            <option value="instructor">Instructor</option>
+                            <option value="auditor">Auditor</option>
+                            <option value="revisor">Revisor</option>
+                            {% else %}
+                            <option value="aprendiz">Aprendiz</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Crear usuario</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Artículo {{ articulo.nombre }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title">{{ articulo.nombre }}</h2>
+                <p class="text-muted">Código: {{ articulo.codigo }}</p>
+                <dl class="row mt-4">
+                    <dt class="col-sm-4">Categoría</dt>
+                    <dd class="col-sm-8">{{ articulo.categoria }}</dd>
+                    <dt class="col-sm-4">Cantidad</dt>
+                    <dd class="col-sm-8">{{ articulo.cantidad }}</dd>
+                    <dt class="col-sm-4">Estado</dt>
+                    <dd class="col-sm-8">{{ articulo.estado }}</dd>
+                    <dt class="col-sm-4">Nivel mínimo</dt>
+                    <dd class="col-sm-8">{{ articulo.nivel_minimo }}</dd>
+                    <dt class="col-sm-4">Descripción</dt>
+                    <dd class="col-sm-8">{{ articulo.descripcion }}</dd>
+                </dl>
+                {% if current_role in ['auditor', 'revisor'] %}
+                <a href="/inventario/movimiento?articulo_id={{ articulo.id }}" class="btn btn-success">Registrar movimiento</a>
+                {% endif %}
+                <a href="/inventario/ambiente/{{ ambiente_id }}" class="btn btn-outline-secondary">Volver</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

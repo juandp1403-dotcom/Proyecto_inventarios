@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Artículo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title">{{ 'Editar artículo' if articulo else 'Nuevo artículo' }}</h2>
+                <form action="{{ action_url }}" method="post">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" id="nombre" name="nombre" class="form-control" value="{{ articulo.nombre if articulo else '' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="codigo" class="form-label">Código</label>
+                        <input type="text" id="codigo" name="codigo" class="form-control" value="{{ articulo.codigo if articulo else '' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cantidad" class="form-label">Cantidad</label>
+                        <input type="number" id="cantidad" name="cantidad" class="form-control" value="{{ articulo.cantidad if articulo else 0 }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="estado" class="form-label">Estado</label>
+                        <input type="text" id="estado" name="estado" class="form-control" value="{{ articulo.estado if articulo else '' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <textarea id="descripcion" name="descripcion" class="form-control" rows="3">{{ articulo.descripcion if articulo else '' }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

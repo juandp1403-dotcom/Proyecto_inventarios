@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+{% if not current_role %}
+<div class="row justify-content-center">
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h2 class="card-title mb-4">Iniciar sesión</h2>
+                <p class="text-muted mb-4">Accede con tu correo y contraseña.</p>
+                <form action="/usuario/login" method="post">
+                    <div class="mb-3">
+                        <label for="loginEmail" class="form-label">Correo electrónico</label>
+                        <input type="email" id="loginEmail" name="email" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="loginPassword" class="form-label">Contraseña</label>
+                        <input type="password" id="loginPassword" name="password" class="form-control" required>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Entrar</button>
+                    </div>
+                </form>
+                <hr class="my-4">
+                <p class="text-muted mb-3">¿No tienes cuenta?</p>
+                <button type="button" class="btn btn-outline-success btn-lg" onclick="toggleRegister()">Registrarse como aprendiz</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center" id="registerSection" style="display: none;">
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h2 class="card-title mb-4">Registrarse como aprendiz</h2>
+                <p class="text-muted mb-4">Crea una cuenta básica de aprendiz para comenzar.</p>
+                <form action="/usuario/crear" method="post">
+                    <input type="hidden" name="rol" value="aprendiz">
+                    <div class="mb-3">
+                        <label for="registerName" class="form-label">Nombre</label>
+                        <input type="text" id="registerName" name="nombre" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="registerEmail" class="form-label">Correo electrónico</label>
+                        <input type="email" id="registerEmail" name="email" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="registerPassword" class="form-label">Contraseña</label>
+                        <input type="password" id="registerPassword" name="password" class="form-control" required>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">Registrarse</button>
+                    </div>
+                </form>
+                <hr class="my-4">
+                <button type="button" class="btn btn-outline-secondary" onclick="toggleRegister()">Volver al inicio de sesión</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-8">
+        <div class="card shadow-lg border-0 bg-gradient" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+            <div class="card-body text-center text-white">
+                <h2 class="card-title mb-3 fw-bold">Panel de Control</h2>
+                <p class="mb-4 opacity-90">Resumen rápido de la actividad y accesos según tu rol.</p>
+                <div class="d-inline-block">
+                    <span class="badge bg-white text-success fs-6 px-4 py-2">Rol: {{ current_role | title }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 justify-content-center">
+    <div class="col-lg-4 col-md-6">
+        <div class="card card-action shadow-sm h-100 border-0">
+            <div class="card-body text-center p-4">
+                <div class="mb-3">
+                    <i class="fas fa-users fa-3x text-primary"></i>
+                </div>
+                <h5 class="card-title fw-bold">Usuarios</h5>
+                <p class="card-text text-muted">Crea y gestiona usuarios según tu rol.</p>
+                {% if current_role == 'admin' %}
+                    <a href="/usuario/crear" class="btn btn-primary btn-lg w-100">Ir a usuarios</a>
+                    {% else %}
+                    <span class="btn btn-secondary btn-lg w-100 disabled">Usuarios (Solo Admin)</span>
+                    {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="card card-action shadow-sm h-100 border-0">
+            <div class="card-body text-center p-4">
+                <div class="mb-3">
+                    <i class="fas fa-building fa-3x text-secondary"></i>
+                </div>
+                <h5 class="card-title fw-bold">Ambientes</h5>
+                <p class="card-text text-muted">Consulta los ambientes y accede a su inventario.</p>
+                <a href="/ambientes/" class="btn btn-secondary btn-lg w-100">Ver ambientes</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="card card-action shadow-sm h-100 border-0">
+            <div class="card-body text-center p-4">
+                <div class="mb-3">
+                    <i class="fas fa-boxes fa-3x text-success"></i>
+                </div>
+                <h5 class="card-title fw-bold">Inventario</h5>
+                <p class="card-text text-muted">Revisa el inventario por ambiente y actúa según permisos.</p>
+                <a href="/inventario/" class="btn btn-success btn-lg w-100">Ir al inventario</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="card card-action shadow-sm h-100 border-0">
+            <div class="card-body text-center p-4">
+                <div class="mb-3">
+                    <i class="fas fa-chart-bar fa-3x text-info"></i>
+                </div>
+                <h5 class="card-title fw-bold">Reportes</h5>
+                <p class="card-text text-muted">Genera y consulta reportes disponibles para tu rol.</p>
+                <a href="/reportes/" class="btn btn-info btn-lg w-100">Ver reportes</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="card card-action shadow-sm h-100 border-0">
+            <div class="card-body text-center p-4">
+                <div class="mb-3">
+                    <i class="fas fa-clipboard-list fa-3x text-warning"></i>
+                </div>
+                <h5 class="card-title fw-bold">Solicitudes</h5>
+                <p class="card-text text-muted">Crea y controla solicitudes de inventario.</p>
+                <a href="/solicitudes/" class="btn btn-warning btn-lg w-100">Solicitudes</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="card card-action shadow-sm h-100 border-0">
+            <div class="card-body text-center p-4">
+                <div class="mb-3">
+                    <i class="fas fa-bell fa-3x text-danger"></i>
+                </div>
+                <h5 class="card-title fw-bold">Alertas</h5>
+                <p class="card-text text-muted">Revisa avisos de cambios, solicitudes y devoluciones.</p>
+                <a href="/usuario/alertas" class="btn btn-danger btn-lg w-100">Ver alertas</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleRegister() {
+    const loginSection = document.querySelector('.row.justify-content-center');
+    const registerSection = document.getElementById('registerSection');
+    
+    if (registerSection.style.display === 'none' || registerSection.style.display === '') {
+        registerSection.style.display = 'flex';
+        loginSection.style.display = 'none';
+    } else {
+        registerSection.style.display = 'none';
+        loginSection.style.display = 'flex';
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventario{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Inventario general</h2>
+        <p class="text-muted">Selecciona un ambiente para ver su inventario.</p>
+    </div>
+</div>
+<div class="row g-3">
+    {% for ambiente in ambientes %}
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ ambiente.nombre }}</h5>
+                    <p class="card-text">{{ ambiente.tipo }}</p>
+                    <a href="/inventario/ambiente/{{ ambiente.id }}" class="btn btn-outline-primary">Ver inventario</a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">Aún no hay ambientes con inventario disponible.</div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

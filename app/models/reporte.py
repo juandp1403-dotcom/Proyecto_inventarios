@@ -1,0 +1,12 @@
+from app import db
+from datetime import datetime
+
+class Reporte(db.Model):
+    tablename = 'reporte'
+    id = db.Column(db.Integer, primary_key=True)
+    tipo = db.Column(db.String(50), nullable=False)
+    filtros = db.Column(db.Text, nullable=True)
+    id_usuario = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    def __repr__(self):
+        return f"Reporte('{self.tipo}', '{self.filtros}', '{self.fecha_creacion}')'"

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear Reporte{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h2 class="card-title mb-4 fw-bold">Crear Reporte</h2>
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="tipo" class="form-label">Tipo de Reporte</label>
+                        <select class="form-select" id="tipo" name="tipo" required>
+                            <option value="">Seleccionar tipo...</option>
+                            <option value="Inventario">Reporte de Inventario</option>
+                            <option value="Daño">Reporte de Daño</option>
+                            <option value="Uso">Reporte de Uso</option>
+                            <option value="Mantenimiento">Reporte de Mantenimiento</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="filtros" class="form-label">Filtros Aplicados</label>
+                        <textarea class="form-control" id="filtros" name="filtros" rows="3" 
+                                  placeholder="Describe los filtros o parámetros utilizados..."></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Generar Reporte</button>
+                    </div>
+                </form>
+                
+                <div class="mt-4">
+                    <a href="/reportes/" class="btn btn-outline-secondary">Volver a la lista</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

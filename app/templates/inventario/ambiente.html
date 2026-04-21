@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventario - {{ ambiente.nombre }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-10">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h2 class="card-title mb-4 fw-bold">Inventario - {{ ambiente.nombre }}</h2>
+                <p class="text-muted mb-4">Tipo: {{ ambiente.tipo }} | Ubicación: {{ ambiente.ubicacion }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        {% if inventario_items %}
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h3 class="card-title mb-4">Items del Inventario</h3>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-success">
+                            <tr>
+                                <th>Artículo</th>
+                                <th>Código</th>
+                                <th>Cantidad Actual</th>
+                                <th>Cantidad Mínima</th>
+                                <th>Estado</th>
+                                {% if current_role in ['admin', 'auditor', 'instructor'] %}
+                                <th>Acciones</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in inventario_items %}
+                            <tr>
+                                {% set inventario = item[0] %}
+                                {% set articulo = item[1] %}
+                                <td>{{ articulo.nombre }}</td>
+                                <td>{{ articulo.codigo }}</td>
+                                <td>
+                                    <span class="badge {% if inventario.cantidad < inventario.cantidad_minima %}bg-danger{% else %}bg-success{% endif %}">
+                                        {{ inventario.cantidad }}
+                                    </span>
+                                </td>
+                                <td>{{ inventario.cantidad_minima }}</td>
+                                <td>
+                                    <span class="badge {% if inventario.cantidad < inventario.cantidad_minima %}bg-warning{% else %}bg-info{% endif %}">
+                                        {{ articulo.estado }}
+                                    </span>
+                                </td>
+                                {% if current_role in ['admin', 'auditor', 'instructor'] %}
+                                <td>
+                                    {% if current_role == 'instructor' %}
+                                    <button class="btn btn-sm btn-primary" onclick="checkItem('{{ inventario.id }}')">
+                                        <i class="fas fa-check"></i> Verificar
+                                    </button>
+                                    {% elif current_role in ['admin', 'auditor'] %}
+                                    <button class="btn btn-sm btn-warning" onclick="updateItem('{{ inventario.id }}')">
+                                        <i class="fas fa-edit"></i> Actualizar
+                                    </button>
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-box-open mb-2"></i>
+                    No hay items en el inventario de este ambiente.
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if current_role == 'instructor' %}
+<script>
+function checkItem(itemId) {
+    // Implementar lógica de checklist para instructor
+    console.log('Verificando item:', itemId);
+    
+    // Aquí puedes agregar la lógica para marcar items como verificados
+    fetch(`/inventario/check/${itemId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+        },
+        body: JSON.stringify({ verificado: true })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Actualizar la interfaz para mostrar el item como verificado
+            const badge = document.querySelector(`button[onclick="checkItem(${itemId})"]`);
+            if (badge) {
+                badge.classList.remove('btn-primary');
+                badge.classList.add('btn-success');
+                badge.innerHTML = '<i class="fas fa-check-circle"></i> Verificado';
+            }
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function updateItem(itemId) {
+    console.log('Actualizando item:', itemId);
+    // Implementar lógica de actualización si es necesario
+}
+</script>
+{% endif %}
+{% endblock %}

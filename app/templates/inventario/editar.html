@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Item del Inventario{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h2 class="card-title mb-4 fw-bold">Editar Item del Inventario</h2>
+                <p class="text-muted mb-4">Artículo: {{ inventario.articulo.nombre }}</p>
+                
+                <form method="post" action="/inventario/editar/{{ inventario.id }}">
+                    <div class="mb-3">
+                        <label for="cantidad" class="form-label">Cantidad Actual</label>
+                        <input type="number" class="form-control" id="cantidad" name="cantidad" 
+                               value="{{ inventario.cantidad }}" min="1" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="cantidad_minima" class="form-label">Cantidad Mínima</label>
+                        <input type="number" class="form-control" id="cantidad_minima" name="cantidad_minima" 
+                               value="{{ inventario.cantidad_minima }}" min="1" required>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-warning btn-lg">Actualizar Item</button>
+                    </div>
+                </form>
+                
+                <div class="mt-4">
+                    <a href="/ambientes/{{ inventario.ambiente.id }}/inventario" class="btn btn-outline-secondary">
+                        Volver al Inventario
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

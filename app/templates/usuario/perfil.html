@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Perfil de Usuario{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title">Perfil</h2>
+                <dl class="row mt-4">
+                    <dt class="col-sm-4">Nombre</dt>
+                    <dd class="col-sm-8">{{ user.nombre }}</dd>
+
+                    <dt class="col-sm-4">Correo</dt>
+                    <dd class="col-sm-8">{{ user.email }}</dd>
+
+                    <dt class="col-sm-4">Rol</dt>
+                    <dd class="col-sm-8">{{ user.rol }}</dd>
+
+                    <dt class="col-sm-4">Activo</dt>
+                    <dd class="col-sm-8">{{ 'Sí' if user.activo else 'No' }}</dd>
+
+                    <dt class="col-sm-4">Aprobado</dt>
+                    <dd class="col-sm-8">{{ 'Sí' if user.aprobado else 'No' }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

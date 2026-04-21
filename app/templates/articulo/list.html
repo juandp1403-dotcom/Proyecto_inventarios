@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Artículos{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h2>Artículos</h2>
+            <p class="text-muted">Gestiona los artículos del inventario.</p>
+        </div>
+        {% if current_role in ['auditor', 'revisor'] %}
+        <a href="/articulos/nuevo" class="btn btn-primary">Nuevo artículo</a>
+        {% endif %}
+    </div>
+</div>
+<div class="row g-3">
+    {% for articulo in articulos %}
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ articulo.nombre }}</h5>
+                    <p class="card-text">Código: {{ articulo.codigo }}</p>
+                    <p class="card-text">Cantidad: {{ articulo.cantidad }}</p>
+                    <a href="/articulos/{{ articulo.id }}" class="btn btn-sm btn-outline-primary">Ver</a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">No hay artículos registrados.</div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

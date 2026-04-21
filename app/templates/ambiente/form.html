@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ 'Crear Ambiente' if accion == 'crear' else 'Editar Ambiente' }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h2 class="card-title mb-4 fw-bold">
+                    {{ 'Crear Ambiente' if accion == 'crear' else 'Editar Ambiente' }}
+                </h2>
+                <form method="post">
+                    {% if accion == 'editar' %}
+                    <input type="hidden" name="id" value="{{ ambiente.id }}">
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre del Ambiente</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" 
+                               value="{{ ambiente.nombre if accion == 'editar' else '' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="tipo" class="form-label">Tipo</label>
+                        <select class="form-select" id="tipo" name="tipo" required>
+                            <option value="">Seleccionar tipo...</option>
+                            <option value="Aula" {{ 'selected' if accion == 'editar' and ambiente.tipo == 'Aula' else '' }}>Aula</option>
+                            <option value="Laboratorio" {{ 'selected' if accion == 'editar' and ambiente.tipo == 'Laboratorio' else '' }}>Laboratorio</option>
+                            <option value="Oficina" {{ 'selected' if accion == 'editar' and ambiente.tipo == 'Oficina' else '' }}>Oficina</option>
+                            <option value="Sala" {{ 'selected' if accion == 'editar' and ambiente.tipo == 'Sala' else '' }}>Sala</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="ubicacion" class="form-label">Ubicación</label>
+                        <input type="text" class="form-control" id="ubicacion" name="ubicacion" 
+                               value="{{ ambiente.ubicacion if accion == 'editar' else '' }}" required>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            {{ 'Crear Ambiente' if accion == 'crear' else 'Guardar Cambios' }}
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="mt-4">
+                    <a href="/ambientes/" class="btn btn-outline-secondary">Volver a la lista</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
