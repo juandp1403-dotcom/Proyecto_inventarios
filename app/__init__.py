@@ -78,4 +78,75 @@ def create_app():
         from app.routes.auth_helpers import get_user_role
         return render_template('dashboard.html', current_role=get_user_role())
 
+    def init_database():
+        app = create_app()
+        with app.app_context():
+            db.create_all()
+            
+            # Roles
+            for rol_name in ['admin', 'auditor', 'revisor', 'instructor', 'aprendiz']:
+                if not Rol.query.filter_by(nombre=rol_name).first():
+                    db.session.add(Rol(nombre=rol_name))
+            
+            # Categoría
+            if not Categoria.query.filter_by(nombre='General').first():
+                db.session.add(Categoria(nombre='General'))
+            
+            db.session.commit()
+            
+            # Ambiente 208
+            ambiente = Ambiente.query.filter_by(nombre='Ambiente 208').first()
+            if not ambiente:
+                ambiente = Ambiente(nombre='Ambiente 208', tipo='Aula', ubicacion='Edificio Principal')
+                db.session.add(ambiente)
+                db.session.commit()
+            
+            # Artículos
+            articulos_data = [
+                ('Silla', 'SIL-001', 10),
+                ('Computador', 'COMP-001', 10),
+                ('Mesa', 'MES-001', 10),
+                ('Tablero', 'TAB-001', 1),
+                ('TV', 'TV-001', 1)
+            ]
+            
+            for nombre, codigo, cantidad in articulos_data:
+                articulo = Articulo.query.filter_by(nombre=nombre).first()
+                if not articulo:
+                    db.session.add(Articulo(
+                        nombre=nombre,
+                        codigo=codigo,
+                        descripcion=f'{nombre} para ambientes',
+                        id_categoria=1,
+                        cantidad=cantidad,
+                        nivel_minimo=2,
+                        estado='disponible'
+                    ))
+            
+            db.session.commit()
+            
+            # Usuarios
+            usuarios = [
+                ('Admin Sistema', 'juanes@gmail.com', '123456', 'admin'),
+                ('Carlos Instructor', 'instructor@test.com', '123456', 'instructor'),
+                ('Ana Aprendiz', 'aprendiz@test.com', '123456', 'aprendiz'),
+                ('Luis Auditor', 'auditor@test.com', '123456', 'auditor'),
+                ('Maria Revisora', 'revisor@test.com', '123456', 'revisor')
+            ]
+            
+            for nombre, email, password, rol_nombre in usuarios:
+                if not Usuario.query.filter_by(email=email).first():
+                    rol = Rol.query.filter_by(nombre=rol_nombre).first()
+                    db.session.add(Usuario(
+                        nombre=nombre,
+                        email=email,
+                        password=password,
+                        id_rol=rol.id,
+                        aprobado=True,
+                        activo=True
+                    ))
+            
+            db.session.commit()
+            print("✅ Base de datos inicializada")
+
     return app
