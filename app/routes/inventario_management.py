@@ -13,6 +13,7 @@ inventario_management_bp = Blueprint('inventario_management', __name__, url_pref
 @login_required
 @role_required('admin', 'auditor')
 def agregar_item_ambiente(ambiente_id):
+    from app.routes.auth_helpers import get_user_role
     ambiente = Ambiente.query.get_or_404(ambiente_id)
     
     if request.method == 'GET':
@@ -20,7 +21,8 @@ def agregar_item_ambiente(ambiente_id):
         articulos = Articulo.query.all()
         return render_template('inventario/agregar.html', 
                              ambiente=ambiente, 
-                             articulos=articulos)
+                             articulos=articulos,
+                             current_role=get_user_role())
     
     data = request.get_json() or request.form
     articulo_id = data.get('id_articulo')
@@ -54,13 +56,12 @@ def agregar_item_ambiente(ambiente_id):
     
     db.session.commit()
     
-    # Generar alerta automática
+    # Generar alerta automática para todos los admin y auditor
     from app.models.alerta import Alerta
     Alerta.crear_alerta(
         titulo='Inventario Actualizado',
         mensaje=mensaje,
-        tipo='inventario',
-        id_usuario_destino=session.get('user_id')
+        tipo='inventario'
     )
     
     return jsonify({'message': 'Item agregado/actualizado correctamente'})
@@ -69,10 +70,11 @@ def agregar_item_ambiente(ambiente_id):
 @login_required
 @role_required('admin', 'auditor')
 def editar_item_inventario(inventario_id):
+    from app.routes.auth_helpers import get_user_role
     inventario = Inventario.query.get_or_404(inventario_id)
     
     if request.method == 'GET':
-        return render_template('inventario/editar.html', inventario=inventario)
+        return render_template('inventario/editar.html', inventario=inventario, current_role=get_user_role())
     
     data = request.get_json() or request.form
     inventario.cantidad = data.get('cantidad', inventario.cantidad)
@@ -80,13 +82,12 @@ def editar_item_inventario(inventario_id):
     
     db.session.commit()
     
-    # Generar alerta automática
+    # Generar alerta automática para todos los admin y auditor
     from app.models.alerta import Alerta
     Alerta.crear_alerta(
         titulo='Inventario Modificado',
         mensaje=f'Item de inventario actualizado: {inventario.cantidad} unidades',
-        tipo='inventario',
-        id_usuario_destino=session.get('user_id')
+        tipo='inventario'
     )
     
     return jsonify({'message': 'Item actualizado correctamente'})
@@ -100,13 +101,12 @@ def eliminar_item_inventario(inventario_id):
     db.session.delete(inventario)
     db.session.commit()
     
-    # Generar alerta automática
+    # Generar alerta automática para todos los admin y auditor
     from app.models.alerta import Alerta
     Alerta.crear_alerta(
         titulo='Inventario Eliminado',
         mensaje=f'Item eliminado del inventario: {inventario.cantidad} unidades',
-        tipo='inventario',
-        id_usuario_destino=session.get('user_id')
+        tipo='inventario'
     )
     
     return jsonify({'message': 'Item eliminado correctamente'})

@@ -29,16 +29,28 @@ def get_user_role():
 
 
 def role_required(*allowed_roles):
+    """Decorador para restringir acceso por rol"""
+    from flask import request, redirect, url_for, jsonify
+    
     allowed = [r.lower() for r in allowed_roles]
-    # Admin has access to everything
-    allowed.append('admin')
-
+    if 'admin' not in allowed:
+        allowed.append('admin')  # Admin siempre tiene acceso
+    
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             role = get_user_role()
-            if not role or role not in allowed:
-                return jsonify({'error': 'Acceso denegado', 'roles_permitidos': allowed_roles}), 403
+            if not role:
+                # Si no hay sesión y la petición es una vista HTML, redirigir al login
+                if 'application/json' not in request.headers.get('Accept', ''):
+                    return redirect(url_for('dashboard'))
+                return jsonify({'error': 'No autenticado'}), 401
+            
+            if role not in allowed:
+                if 'application/json' not in request.headers.get('Accept', ''):
+                    return redirect(url_for('dashboard'))
+                return jsonify({'error': 'Acceso denegado', 'roles_permitidos': list(allowed_roles)}), 403
+            
             return func(*args, **kwargs)
         return wrapper
     return decorator

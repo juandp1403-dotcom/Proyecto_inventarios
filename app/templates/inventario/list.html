@@ -7,11 +7,14 @@
     <div class="col-12">
         <h2>Inventario general</h2>
         <p class="text-muted">Selecciona un ambiente para ver su inventario.</p>
+        <div class="mb-3">
+            <input type="text" id="buscarAmbiente" class="form-control" placeholder="Buscar ambiente por nombre..." onkeyup="filtrarAmbientes()">
+        </div>
     </div>
 </div>
-<div class="row g-3">
+<div class="row g-3" id="listaAmbientes">
     {% for ambiente in ambientes %}
-        <div class="col-md-4">
+        <div class="col-md-4 ambiente-card">
             <div class="card h-100 shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title">{{ ambiente.nombre }}</h5>
@@ -26,4 +29,25 @@
         </div>
     {% endfor %}
 </div>
+
+<script>
+function filtrarAmbientes() {
+    const input = document.getElementById('buscarAmbiente');
+    const filter = input.value.toLowerCase();
+    const container = document.getElementById('listaAmbientes');
+    const cards = container.getElementsByClassName('ambiente-card');
+    
+    for (let i = 0; i < cards.length; i++) {
+        const title = cards[i].querySelector('.card-title');
+        if (title) {
+            const txt = title.textContent || title.innerText;
+            if (txt.toLowerCase().indexOf(filter) > -1) {
+                cards[i].style.display = "";
+            } else {
+                cards[i].style.display = "none";
+            }
+        }
+    }
+}
+</script>
 {% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Usuario{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <h2 class="card-title mb-4">Editar usuario</h2>
+                <form action="/usuario/editar/{{ usuario.id }}" method="post">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" id="nombre" name="nombre" class="form-control" value="{{ usuario.nombre }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Correo electrónico</label>
+                        <input type="email" id="email" name="email" class="form-control" value="{{ usuario.email }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Nueva contraseña (dejar en blanco para mantener)</label>
+                        <input type="password" id="password" name="password" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="rol" class="form-label">Rol</label>
+                        <select id="rol" name="rol" class="form-select" required>
+                            {% for rol in roles %}
+                                <option value="{{ rol.nombre }}" {% if rol.nombre == rol_actual %}selected{% endif %}>{{ rol.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" id="activo" name="activo" class="form-check-input" {% if usuario.activo %}checked{% endif %}>
+                        <label for="activo" class="form-check-label">Usuario activo</label>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" id="aprobado" name="aprobado" class="form-check-input" {% if usuario.aprobado %}checked{% endif %}>
+                        <label for="aprobado" class="form-check-label">Usuario aprobado</label>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Guardar cambios</button>
+                        <a href="/usuario/listar" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

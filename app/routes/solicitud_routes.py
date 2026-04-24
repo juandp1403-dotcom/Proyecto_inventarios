@@ -7,18 +7,22 @@ solicitud_bp = Blueprint('solicitud', __name__, url_prefix='/solicitudes')
 
 
 @solicitud_bp.route('/', methods=['GET'])
-@role_required('revisor', 'auditor')
+@login_required
+@role_required('admin', 'auditor', 'revisor')
 def listar_solicitudes():
+    from app.routes.auth_helpers import get_user_role
     # Obtener solicitudes de la base de datos
     solicitudes = Solicitud.query.all()
-    return render_template('solicitud/list.html', solicitudes=solicitudes)
+    return render_template('solicitud/list.html', solicitudes=solicitudes, current_role=get_user_role())
 
 
 @solicitud_bp.route('/crear', methods=['GET', 'POST'])
-@role_required('revisor', 'instructor')
+@login_required
+@role_required('admin', 'auditor', 'revisor', 'instructor')
 def crear_solicitud():
+    from app.routes.auth_helpers import get_user_role
     if request.method == 'GET':
-        return render_template('solicitud/form.html', accion='crear')
+        return render_template('solicitud/form.html', accion='crear', current_role=get_user_role())
     
     data = request.get_json() or request.form
     solicitud = Solicitud(
@@ -29,24 +33,20 @@ def crear_solicitud():
     db.session.add(solicitud)
     db.session.commit()
     
-    # Generar alerta automática para admin y auditor
-    from app.routes.auth_helpers import get_user_role
-    current_role = get_user_role()
-    if current_role in ['admin', 'auditor']:
-        from app.models.alerta import Alerta
-        Alerta.crear_alerta(
-            titulo='Nueva Solicitud Creada',
-            mensaje=f'Se ha creado una nueva solicitud: {data.get("justificacion")}',
-            tipo='solicitud',
-            id_usuario_destino=session.get('user_id')
-        )
+    # Generar alerta automática para todos los admin y auditor
+    from app.models.alerta import Alerta
+    Alerta.crear_alerta(
+        titulo='Nueva Solicitud Creada',
+        mensaje=f'Se ha creado una nueva solicitud: {data.get("justificacion")}',
+        tipo='solicitud'
+    )
     
     return jsonify({'message': 'Solicitud creada correctamente', 'id': solicitud.id}), 201
 
 
 @solicitud_bp.route('/', methods=['POST'])
 @login_required
-@role_required('revisor')
+@role_required('admin', 'auditor', 'revisor')
 def crear_solicitud_api():
     data = request.get_json() or {}
     return jsonify({'message': 'Solicitud creada', 'datos': data}), 201
@@ -54,6 +54,6 @@ def crear_solicitud_api():
 
 @solicitud_bp.route('/<int:solicitud_id>/aprobar', methods=['POST'])
 @login_required
-@role_required('auditor')
+@role_required('admin', 'auditor')
 def aprobar_solicitud(solicitud_id):
     return jsonify({'message': f'Solicitud {solicitud_id} aprobada'})

@@ -52,17 +52,16 @@
                                         {{ articulo.estado }}
                                     </span>
                                 </td>
-                                {% if current_role in ['admin', 'auditor', 'instructor'] %}
+                                {% if current_role in ['admin', 'auditor', 'instructor', 'aprendiz'] %}
                                 <td>
-                                    {% if current_role == 'instructor' %}
-                                    <button class="btn btn-sm btn-primary" onclick="checkItem('{{ inventario.id }}')">
-                                        <i class="fas fa-check"></i> Verificar
-                                    </button>
-                                    {% elif current_role in ['admin', 'auditor'] %}
+                                    {% if current_role in ['admin', 'auditor', 'instructor'] %}
                                     <button class="btn btn-sm btn-warning" onclick="updateItem('{{ inventario.id }}')">
                                         <i class="fas fa-edit"></i> Actualizar
                                     </button>
                                     {% endif %}
+                                    <button class="btn btn-sm btn-success" onclick="checklistItem('{{ inventario.id }}')">
+                                        <i class="fas fa-check-square"></i> Checklist
+                                    </button>
                                 </td>
                                 {% endif %}
                             </tr>
@@ -85,34 +84,30 @@
     </div>
 </div>
 
-{% if current_role == 'instructor' %}
+{% if current_role in ['admin', 'auditor', 'instructor', 'aprendiz'] %}
 <script>
-function checkItem(itemId) {
-    // Implementar lógica de checklist para instructor
-    console.log('Verificando item:', itemId);
+function checklistItem(inventarioId) {
+    const observaciones = prompt('¿Observaciones del checklist? (opcional)');
     
-    // Aquí puedes agregar la lógica para marcar items como verificados
-    fetch(`/inventario/check/${itemId}`, {
+    fetch(`/inventario/checklist/${inventarioId}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
         },
-        body: JSON.stringify({ verificado: true })
+        body: JSON.stringify({
+            observaciones: observaciones || ''
+        })
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            // Actualizar la interfaz para mostrar el item como verificado
-            const badge = document.querySelector(`button[onclick="checkItem(${itemId})"]`);
-            if (badge) {
-                badge.classList.remove('btn-primary');
-                badge.classList.add('btn-success');
-                badge.innerHTML = '<i class="fas fa-check-circle"></i> Verificado';
-            }
+        if (data.message) {
+            alert(data.message);
         }
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al realizar el checklist');
+    });
 }
 
 function updateItem(itemId) {

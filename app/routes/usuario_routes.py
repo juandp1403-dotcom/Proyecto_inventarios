@@ -4,6 +4,7 @@ from app.models.usuario import Usuario
 from app.models.login_auditoria import Login_auditoria
 from app.models.rol import Rol
 from app.routes.auth_helpers import role_required, get_user_role
+from app.routes.auth_decorators import login_required
 
 usuario_bp = Blueprint('usuario', __name__, url_prefix='/usuario')
 
@@ -47,8 +48,7 @@ def login_usuario():
 
 @usuario_bp.route('/logout', methods=['GET'])
 def logout_usuario():
-    session.pop('user_id', None)
-    session.pop('user_role', None)  # También eliminar el rol de la sesión
+    session.clear()
     return redirect(url_for('dashboard'))
 
 
@@ -185,7 +185,62 @@ def manejar_devoluciones():
 
 
 @usuario_bp.route('/alertas', methods=['GET'])
-@role_required('revisor')
+@login_required
+@role_required('admin', 'auditor')
 def ver_alertas():
+    from app.routes.auth_helpers import get_user_role
     # Renderizar template de alertas
-    return render_template('usuario/alertas.html')
+    return render_template('usuario/alertas.html', current_role=get_user_role())
+
+
+@usuario_bp.route('/listar', methods=['GET'])
+@login_required
+@role_required('admin')
+def listar_usuarios():
+    from app.routes.auth_helpers import get_user_role
+    usuarios = Usuario.query.all()
+    roles = Rol.query.all()
+    return render_template('usuario/listar.html', usuarios=usuarios, roles=roles, current_role=get_user_role())
+
+
+@usuario_bp.route('/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
+@role_required('admin')
+def editar_usuario(id):
+    from app.routes.auth_helpers import get_user_role
+    usuario = Usuario.query.get_or_404(id)
+    roles = Rol.query.all()
+    
+    if request.method == 'POST':
+        data = request.form
+        usuario.nombre = data.get('nombre', usuario.nombre)
+        usuario.email = data.get('email', usuario.email)
+        if data.get('password'):
+            usuario.password = data.get('password')
+        nuevo_rol = data.get('rol')
+        if nuevo_rol:
+            rol = Rol.query.filter_by(nombre=nuevo_rol).first()
+            if rol:
+                usuario.id_rol = rol.id
+        usuario.aprobado = 'aprobado' in data
+        usuario.activo = 'activo' in data
+        db.session.commit()
+        return redirect(url_for('usuario.listar_usuarios'))
+    
+    rol_actual = Rol.query.get(usuario.id_rol)
+    return render_template('usuario/editar.html', usuario=usuario, roles=roles, rol_actual=rol_actual.nombre if rol_actual else None, current_role=get_user_role())
+
+
+@usuario_bp.route('/eliminar/<int:id>', methods=['POST'])
+@login_required
+@role_required('admin')
+def eliminar_usuario(id):
+    usuario = Usuario.query.get_or_404(id)
+    
+    # No permitir eliminar al admin
+    if usuario.email == 'admin@gmail.com' or usuario.nombre == 'admin':
+        return jsonify({'error': 'No se puede eliminar el usuario admin'}), 403
+    
+    db.session.delete(usuario)
+    db.session.commit()
+    return jsonify({'message': 'Usuario eliminado correctamente'}), 200
