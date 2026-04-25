@@ -215,7 +215,7 @@ function enviarAccion() {
     fetch(url, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({descripcion: desc, id_ambiente: {{ ambiente.id }}})
+        body: JSON.stringify({descripcion: desc, id_ambiente: {{ ambiente.id|tojson }}})
     })
     .then(function(r) { return r.json(); })
     .then(function(d) {

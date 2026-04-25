@@ -55,7 +55,6 @@ def logout_usuario():
 @usuario_bp.route('/crear', methods=['GET', 'POST'])
 def crear_usuario():
     if request.method == 'GET':
-        from app.routes.auth_helpers import get_user_role
         return render_template('usuario/crear.html', current_role=get_user_role())
     
     # POST method existing code
