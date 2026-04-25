@@ -1,9 +1,10 @@
 from flask import Blueprint, jsonify, request, render_template, redirect, url_for
 from app.routes.auth_helpers import role_required, get_user_role
 from app.routes.auth_decorators import login_required
-from app.models.inventario import Inventario
+from app.models.inventario_ambiente import InventarioAmbiente
 from app.models.articulo import Articulo
 from app.models.ambiente import Ambiente
+from app.models.alerta import Alerta
 from app import db
 from flask import session
 
@@ -13,11 +14,9 @@ inventario_management_bp = Blueprint('inventario_management', __name__, url_pref
 @login_required
 @role_required('admin', 'auditor')
 def agregar_item_ambiente(ambiente_id):
-    from app.routes.auth_helpers import get_user_role
     ambiente = Ambiente.query.get_or_404(ambiente_id)
     
     if request.method == 'GET':
-        # Obtener todos los artículos disponibles
         articulos = Articulo.query.all()
         return render_template('inventario/agregar.html', 
                              ambiente=ambiente, 
@@ -32,20 +31,17 @@ def agregar_item_ambiente(ambiente_id):
     if not articulo_id or not cantidad:
         return jsonify({'error': 'Artículo y cantidad son requeridos'}), 400
     
-    # Verificar si ya existe este artículo en el inventario del ambiente
-    existencia = Inventario.query.filter_by(
+    existencia = InventarioAmbiente.query.filter_by(
         id_ambiente=ambiente_id,
         id_articulo=articulo_id
     ).first()
     
     if existencia:
-        # Actualizar cantidad existente
         existencia.cantidad = cantidad
         existencia.cantidad_minima = cantidad_minima
         mensaje = f'Artículo actualizado en {ambiente.nombre}: {cantidad} unidades'
     else:
-        # Crear nuevo registro
-        nuevo_inventario = Inventario(
+        nuevo_inventario = InventarioAmbiente(
             id_ambiente=ambiente_id,
             id_articulo=articulo_id,
             cantidad=cantidad,
@@ -56,8 +52,6 @@ def agregar_item_ambiente(ambiente_id):
     
     db.session.commit()
     
-    # Generar alerta automática para todos los admin y auditor
-    from app.models.alerta import Alerta
     Alerta.crear_alerta(
         titulo='Inventario Actualizado',
         mensaje=mensaje,
@@ -70,8 +64,7 @@ def agregar_item_ambiente(ambiente_id):
 @login_required
 @role_required('admin', 'auditor')
 def editar_item_inventario(inventario_id):
-    from app.routes.auth_helpers import get_user_role
-    inventario = Inventario.query.get_or_404(inventario_id)
+    inventario = InventarioAmbiente.query.get_or_404(inventario_id)
     
     if request.method == 'GET':
         return render_template('inventario/editar.html', inventario=inventario, current_role=get_user_role())
@@ -82,8 +75,6 @@ def editar_item_inventario(inventario_id):
     
     db.session.commit()
     
-    # Generar alerta automática para todos los admin y auditor
-    from app.models.alerta import Alerta
     Alerta.crear_alerta(
         titulo='Inventario Modificado',
         mensaje=f'Item de inventario actualizado: {inventario.cantidad} unidades',
@@ -96,13 +87,11 @@ def editar_item_inventario(inventario_id):
 @login_required
 @role_required('admin')
 def eliminar_item_inventario(inventario_id):
-    inventario = Inventario.query.get_or_404(inventario_id)
+    inventario = InventarioAmbiente.query.get_or_404(inventario_id)
     
     db.session.delete(inventario)
     db.session.commit()
     
-    # Generar alerta automática para todos los admin y auditor
-    from app.models.alerta import Alerta
     Alerta.crear_alerta(
         titulo='Inventario Eliminado',
         mensaje=f'Item eliminado del inventario: {inventario.cantidad} unidades',

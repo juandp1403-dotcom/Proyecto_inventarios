@@ -9,6 +9,16 @@
             <div class="card-body text-center">
                 <h2 class="card-title mb-4 fw-bold">Inventario - {{ ambiente.nombre }}</h2>
                 <p class="text-muted mb-4">Tipo: {{ ambiente.tipo }} | Ubicación: {{ ambiente.ubicacion }}</p>
+                <div>
+                    <button class="btn btn-success" onclick="checklistGeneral()">Checklist General</button>
+                    {% if current_role in ['admin', 'auditor', 'instructor', 'aprendiz'] %}
+                    <button class="btn btn-warning" onclick="abrirSolicitudGeneral()">Nueva Solicitud</button>
+                    <button class="btn btn-danger" onclick="abrirReporteGeneral()">Nuevo Reporte</button>
+                    {% endif %}
+                    {% if current_role in ['admin', 'auditor'] %}
+                    <a href="/inventario/editar/{{ ambiente.id }}" class="btn btn-primary">Editar Inventario</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
@@ -25,7 +35,6 @@
                         <thead class="table-success">
                             <tr>
                                 <th>Artículo</th>
-                                <th>Código</th>
                                 <th>Cantidad Actual</th>
                                 <th>Cantidad Mínima</th>
                                 <th>Estado</th>
@@ -36,34 +45,28 @@
                         </thead>
                         <tbody>
                             {% for item in inventario_items %}
-                            <tr>
-                                {% set inventario = item[0] %}
-                                {% set articulo = item[1] %}
-                                <td>{{ articulo.nombre }}</td>
-                                <td>{{ articulo.codigo }}</td>
+                            <tr data-inv-id="{{ item.id }}">
+                                <td>{% if articulos[item.id_articulo] %}{{ articulos[item.id_articulo] }}{% else %}Artículo #{{ item.id_articulo }}{% endif %}</td>
                                 <td>
-                                    <span class="badge {% if inventario.cantidad < inventario.cantidad_minima %}bg-danger{% else %}bg-success{% endif %}">
-                                        {{ inventario.cantidad }}
+                                    <span class="badge {% if item.cantidad < item.cantidad_minima %}bg-danger{% else %}bg-success{% endif %}">
+                                        {{ item.cantidad }}
                                     </span>
                                 </td>
-                                <td>{{ inventario.cantidad_minima }}</td>
+                                <td>{{ item.cantidad_minima }}</td>
                                 <td>
-                                    <span class="badge {% if inventario.cantidad < inventario.cantidad_minima %}bg-warning{% else %}bg-info{% endif %}">
-                                        {{ articulo.estado }}
+                                    <span class="badge {% if item.cantidad < item.cantidad_minima %}bg-warning{% else %}bg-info{% endif %}">
+                                        {% if item.cantidad < item.cantidad_minima %}Bajo{% else %}OK{% endif %}
                                     </span>
                                 </td>
-                                {% if current_role in ['admin', 'auditor', 'instructor', 'aprendiz'] %}
+                                {% if current_role in ['admin', 'auditor', 'instructor'] %}
                                 <td>
-                                    {% if current_role in ['admin', 'auditor', 'instructor'] %}
-                                    <button class="btn btn-sm btn-warning" onclick="updateItem('{{ inventario.id }}')">
-                                        <i class="fas fa-edit"></i> Actualizar
-                                    </button>
-                                    {% endif %}
-                                    <button class="btn btn-sm btn-success" onclick="checklistItem('{{ inventario.id }}')">
-                                        <i class="fas fa-check-square"></i> Checklist
-                                    </button>
+                                    <button class="btn btn-sm btn-secondary" onclick="abrirCambioInventario('{{ item.id }}', '{% if articulos[item.id_articulo] %}{{ articulos[item.id_articulo] }}{% endif %}', {{ item.cantidad }})">Cambiar</button>
                                 </td>
                                 {% endif %}
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center">No hay items en el inventario.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -75,7 +78,6 @@
         <div class="card shadow-sm">
             <div class="card-body text-center">
                 <div class="alert alert-info text-center">
-                    <i class="fas fa-box-open mb-2"></i>
                     No hay items en el inventario de este ambiente.
                 </div>
             </div>
@@ -85,34 +87,142 @@
 </div>
 
 {% if current_role in ['admin', 'auditor', 'instructor', 'aprendiz'] %}
+<style>
+.modal {display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;}
+.modal-content {background:#fff; margin:10% auto; padding:20px; width:90%; max-width:500px; border-radius:10px;}
+.modal-content h3 {margin-top:0;}
+.modal-content textarea {width:100%; height:100px; margin:10px 0; padding:10px; border-radius:5px; border:1px solid #ccc;}
+.modal-btn {padding:10px 20px; margin:5px; border:none; border-radius:5px; cursor:pointer;}
+.modal-btn-primary {background:#28a745; color:#fff;}
+.modal-btn-secondary {background:#6c757d; color:#fff;}
+</style>
+
+<div id="modalAccion" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTitulo">Título</h3>
+        <textarea id="modalDescripcion" placeholder="Describe lo necesario..."></textarea>
+        <div>
+            <button class="modal-btn modal-btn-primary" onclick="enviarAccion()">Enviar</button>
+            <button class="modal-btn modal-btn-secondary" onclick="cerrarModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalInventario" class="modal">
+    <div class="modal-content">
+        <h3>Cambiar Inventario: <span id="invArticuloNombre"></span></h3>
+        <div class="mb-3">
+            <label for="nuevaCantidad" class="form-label">Nueva Cantidad</label>
+            <input type="number" id="nuevaCantidad" class="form-control" min="0" value="0">
+        </div>
+        <div class="mb-3">
+            <label for="cantidadMinima" class="form-label">Cantidad Mínima</label>
+            <input type="number" id="cantidadMinima" class="form-control" min="0" value="0">
+        </div>
+        <div>
+            <button class="modal-btn modal-btn-primary" onclick="guardarCambioInventario()">Guardar</button>
+            <button class="modal-btn modal-btn-secondary" onclick="cerrarModalInventario()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
 <script>
-function checklistItem(inventarioId) {
-    const observaciones = prompt('¿Observaciones del checklist? (opcional)');
-    
-    fetch(`/inventario/checklist/${inventarioId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            observaciones: observaciones || ''
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message) {
-            alert(data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error al realizar el checklist');
+var accionActual = '';
+var inventarioActual = 0;
+
+function checklistGeneral() {
+    var items = document.querySelectorAll('[data-inv-id]');
+    var prom = Promise.resolve();
+    items.forEach(function(item) {
+        prom = prom.then(function() {
+            return fetch('/inventario/checklist/' + item.dataset.invId, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({observaciones: 'Checklist general'})
+            });
+        });
     });
+    prom.then(function() { alert('Checklist general realizado'); })
+    .catch(function() { alert('Error en checklist'); });
 }
 
-function updateItem(itemId) {
-    console.log('Actualizando item:', itemId);
-    // Implementar lógica de actualización si es necesario
+function abrirCambioInventario(invId, nombreArticulo, cantidadActual) {
+    inventarioActual = invId;
+    document.getElementById('invArticuloNombre').textContent = nombreArticulo;
+    document.getElementById('nuevaCantidad').value = cantidadActual;
+    document.getElementById('nuevaCantidad').dataset.cantidadActual = cantidadActual;
+    document.getElementById('modalInventario').style.display = 'block';
+}
+
+function cerrarModalInventario() {
+    document.getElementById('modalInventario').style.display = 'none';
+}
+
+function guardarCambioInventario() {
+    var nuevaCantidad = document.getElementById('nuevaCantidad').value;
+    var nuevaCantidadMinima = document.getElementById('cantidadMinima').value;
+    
+    if (!nuevaCantidad || isNaN(nuevaCantidad)) {
+        nuevaCantidad = document.getElementById('nuevaCantidad').dataset.cantidadActual;
+    }
+    
+    fetch('/inventario/actualizar/' + inventarioActual, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            cantidad: parseInt(nuevaCantidad) || 0,
+            cantidad_minima: parseInt(nuevaCantidadMinima) || 0
+        })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        alert(d.message || 'Guardado');
+        cerrarModalInventario();
+        location.reload();
+    })
+    .catch(function() { alert('Error al guardar'); });
+}
+
+function abrirSolicitudGeneral() {
+    var items = document.querySelectorAll('[data-inv-id]');
+    if (items.length === 0) return alert('No hay items');
+    inventarioActual = items[0].dataset.invId;
+    accionActual = 'solicitud';
+    document.getElementById('modalTitulo').textContent = 'Nueva Solicitud';
+    document.getElementById('modalDescripcion').value = '';
+    document.getElementById('modalAccion').style.display = 'block';
+}
+
+function abrirReporteGeneral() {
+    var items = document.querySelectorAll('[data-inv-id]');
+    if (items.length === 0) return alert('No hay items');
+    inventarioActual = items[0].dataset.invId;
+    accionActual = 'reporte';
+    document.getElementById('modalTitulo').textContent = 'Nuevo Reporte';
+    document.getElementById('modalDescripcion').value = '';
+    document.getElementById('modalAccion').style.display = 'block';
+}
+
+function cerrarModal() {
+    document.getElementById('modalAccion').style.display = 'none';
+}
+
+function enviarAccion() {
+    var desc = document.getElementById('modalDescripcion').value;
+    if (!desc) return alert('Escribe algo');
+    
+    var url = '/inventario/' + accionActual + '/' + inventarioActual;
+    fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({descripcion: desc, id_ambiente: {{ ambiente.id }}})
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        alert(d.message || 'Enviado');
+        cerrarModal();
+    })
+    .catch(function() { alert('Error'); });
 }
 </script>
 {% endif %}

@@ -10,6 +10,9 @@
         <div class="mb-3">
             <input type="text" id="buscarAmbiente" class="form-control" placeholder="Buscar ambiente por nombre..." onkeyup="filtrarAmbientes()">
         </div>
+        {% if current_role in ['admin', 'auditor'] %}
+        <a href="/ambientes/crear" class="btn btn-success">Añadir Ambiente</a>
+        {% endif %}
     </div>
 </div>
 <div class="row g-3" id="listaAmbientes">

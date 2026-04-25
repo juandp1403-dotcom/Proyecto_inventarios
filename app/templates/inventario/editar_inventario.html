@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Inventario - {{ ambiente.nombre }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Editar Inventario - {{ ambiente.nombre }}</h2>
+                <p class="text-muted">Agrega, elimina o modifica los artículos del inventario.</p>
+                
+                <div id="tablaInventario">
+                    <table class="table table-striped" id="tabla">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Artículo</th>
+                                <th>Cantidad</th>
+                                <th>Cantidad Mínima</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody">
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-3">
+                    <button type="button" class="btn btn-success" onclick="agregarFila()">+ Agregar Artículo</button>
+                </div>
+                
+                <div class="mt-4">
+                    <button type="button" class="btn btn-primary btn-lg" onclick="guardarInventario()">Guardar Inventario</button>
+                    <a href="/inventario/ambiente/{{ ambiente.id }}" class="btn btn-secondary btn-lg">Cancelar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+var inventarioActual = {{ inventario_items|tojson }};
+
+function initTabla() {
+    var tbody = document.getElementById('tbody');
+    tbody.innerHTML = '';
+    
+    inventarioActual.forEach(function(inv) {
+        agregarFilaConDatos(inv.nombre_articulo || '', inv.cantidad, inv.cantidad_minima);
+    });
+}
+
+function agregarFilaConDatos(nombre, cantidad, minima) {
+    var tbody = document.getElementById('tbody');
+    var tr = document.createElement('tr');
+    
+    tr.innerHTML = '<td><input type="text" name="articulo" class="form-control" placeholder="Nombre del artículo" value="' + (nombre || '') + '" required></td>' +
+        '<td><input type="number" name="cantidad" value="' + cantidad + '" min="0" class="form-control" required></td>' +
+        '<td><input type="number" name="cantidad_minima" value="' + minima + '" min="0" class="form-control" required></td>' +
+        '<td><button type="button" class="btn btn-danger btn-sm" onclick="this.closest(\'tr\').remove()">Eliminar</button></td>';
+    
+    tbody.appendChild(tr);
+}
+
+function agregarFila() {
+    agregarFilaConDatos('', 0, 2);
+}
+
+function guardarInventario() {
+    var filas = document.querySelectorAll('#tbody tr');
+    var items = [];
+    
+    filas.forEach(function(fila) {
+        var nombreArticulo = fila.querySelector('input[name="articulo"]').value;
+        var cantidad = fila.querySelector('input[name="cantidad"]').value;
+        var cantidadMinima = fila.querySelector('input[name="cantidad_minima"]').value;
+        
+        if (nombreArticulo.trim()) {
+            items.push({
+                nombre: nombreArticulo.trim(),
+                cantidad: parseInt(cantidad) || 0,
+                cantidad_minima: parseInt(cantidadMinima) || 2
+            });
+        }
+    });
+    
+    fetch('/inventario/editar/{{ ambiente.id }}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({items: items})
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        alert(d.message || 'Guardado');
+        window.location.href = '/inventario/ambiente/{{ ambiente.id }}';
+    })
+    .catch(function() { alert('Error'); });
+}
+
+document.addEventListener('DOMContentLoaded', initTabla);
+</script>
+{% endblock %}

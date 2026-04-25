@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if accion == 'editar' %}Editar{% else %}Nuevo{% endif %} Ambiente{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title mb-4">{% if accion == 'editar' %}Editar{% else %}Nuevo{% endif %} Ambiente</h2>
+                <form id="ambienteForm">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Número/Nombre del Ambiente</label>
+                        <input type="text" id="nombre" name="nombre" class="form-control" value="{% if ambiente %}{{ ambiente.nombre }}{% endif %}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tipo" class="form-label">Tipo</label>
+                        <select id="tipo" name="tipo" class="form-select" required>
+                            <option value="Aula">Aula</option>
+                            <option value="Laboratorio">Laboratorio</option>
+                            <option value="Oficina">Oficina</option>
+                            <option value="Bodega">Bodega</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ubicacion" class="form-label">Ubicación</label>
+                        <input type="text" id="ubicacion" name="ubicacion" class="form-control" value="{% if ambiente %}{{ ambiente.ubicacion }}{% endif %}" required>
+                    </div>
+                    
+                    {% if accion != 'editar' %}
+                    <hr class="my-4">
+                    <h4 class="mb-3">Artículos del Inventario</h4>
+                    <div id="itemsContainer">
+                        <div class="row g-2 mb-2 item-row">
+                            <div class="col-5">
+                                <input type="text" name="item_nombre" class="form-control" placeholder="Nombre del artículo" required>
+                            </div>
+                            <div class="col-3">
+                                <input type="number" name="item_cantidad" class="form-control" placeholder="Cantidad" min="0" value="1" required>
+                            </div>
+                            <div class="col-3">
+                                <input type="number" name="item_minima" class="form-control" placeholder="Mínima" min="0" value="2" required>
+                            </div>
+                            <div class="col-1">
+                                <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.item-row').remove()">X</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm mb-3" onclick="agregarItem()">+ Añadir artículo</button>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">{% if accion == 'editar' %}Guardar{% else %}Crear{% endif %} Ambiente</button>
+                        <a href="/inventario/" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function agregarItem() {
+    var container = document.getElementById('itemsContainer');
+    var div = document.createElement('div');
+    div.className = 'row g-2 mb-2 item-row';
+    div.innerHTML = '<div class="col-5"><input type="text" name="item_nombre" class="form-control" placeholder="Nombre del artículo" required></div>' +
+        '<div class="col-3"><input type="number" name="item_cantidad" class="form-control" placeholder="Cantidad" min="0" value="1" required></div>' +
+        '<div class="col-3"><input type="number" name="item_minima" class="form-control" placeholder="Mínima" min="0" value="2" required></div>' +
+        '<div class="col-1"><button type="button" class="btn btn-danger btn-sm" onclick="this.closest(\'.item-row\').remove()">X</button></div>';
+    container.appendChild(div);
+}
+
+document.getElementById('ambienteForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var formData = {
+        nombre: document.getElementById('nombre').value,
+        tipo: document.getElementById('tipo').value,
+        ubicacion: document.getElementById('ubicacion').value,
+        items: []
+    };
+    
+    var rows = document.querySelectorAll('.item-row');
+    rows.forEach(function(row) {
+        var nombre = row.querySelector('[name="item_nombre"]').value;
+        var cantidad = row.querySelector('[name="item_cantidad"]').value;
+        var cantidad_minima = row.querySelector('[name="item_minima"]').value;
+        if (nombre) {
+            formData.items.push({
+                nombre: nombre,
+                cantidad: parseInt(cantidad) || 0,
+                cantidad_minima: parseInt(cantidad_minima) || 2
+            });
+        }
+    });
+    
+    var url = '/ambientes/crear';
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(formData)
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        alert(d.message || 'Guardado');
+        window.location.href = '/inventario/';
+    })
+    .catch(function() { alert('Error'); });
+});
+</script>
+{% endblock %}

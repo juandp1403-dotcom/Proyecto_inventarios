@@ -186,11 +186,13 @@ def manejar_devoluciones():
 
 @usuario_bp.route('/alertas', methods=['GET'])
 @login_required
-@role_required('admin', 'auditor')
+@role_required('admin', 'auditor', 'revisor', 'instructor', 'aprendiz')
 def ver_alertas():
-    from app.routes.auth_helpers import get_user_role
-    # Renderizar template de alertas
-    return render_template('usuario/alertas.html', current_role=get_user_role())
+    from app.models.alerta import Alerta
+    user_id = session.get('user_id')
+    alertas = Alerta.query.filter_by(id_usuario_destino=user_id).order_by(Alerta.fecha_creacion.desc()).all()
+    alertas_dict = [{'titulo': a.titulo, 'mensaje': a.mensaje, 'fecha': a.fecha_creacion, 'tipo': a.tipo, 'leida': a.leida} for a in alertas]
+    return render_template('usuario/alertas.html', alerts=alertas_dict, current_role=get_user_role())
 
 
 @usuario_bp.route('/listar', methods=['GET'])

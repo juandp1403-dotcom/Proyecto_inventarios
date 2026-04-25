@@ -20,38 +20,23 @@ class Alerta(db.Model):
         from app.models.usuario import Usuario
         from app.models.rol import Rol
         
-        # Si no se especifica destino, enviar a todos los admin y auditor
         if id_usuario_destino is None:
-            admin_rol = Rol.query.filter_by(nombre='admin').first()
-            auditor_rol = Rol.query.filter_by(nombre='auditor').first()
+            roles_destino = ['admin', 'auditor', 'revisor']
             
-            # Enviar a todos los usuarios admin
-            if admin_rol:
-                admin_users = Usuario.query.filter_by(id_rol=admin_rol.id).all()
-                for user in admin_users:
-                    alerta = Alerta(
-                        titulo=titulo,
-                        mensaje=mensaje,
-                        tipo=tipo,
-                        id_usuario_destino=user.id,
-                        id_referencia=id_referencia
-                    )
-                    db.session.add(alerta)
-            
-            # Enviar a todos los usuarios auditor
-            if auditor_rol:
-                auditor_users = Usuario.query.filter_by(id_rol=auditor_rol.id).all()
-                for user in auditor_users:
-                    alerta = Alerta(
-                        titulo=titulo,
-                        mensaje=mensaje,
-                        tipo=tipo,
-                        id_usuario_destino=user.id,
-                        id_referencia=id_referencia
-                    )
-                    db.session.add(alerta)
+            for rol_nombre in roles_destino:
+                rol = Rol.query.filter_by(nombre=rol_nombre).first()
+                if rol:
+                    usuarios = Usuario.query.filter_by(id_rol=rol.id).all()
+                    for user in usuarios:
+                        alerta = Alerta(
+                            titulo=titulo,
+                            mensaje=mensaje,
+                            tipo=tipo,
+                            id_usuario_destino=user.id,
+                            id_referencia=id_referencia
+                        )
+                        db.session.add(alerta)
         else:
-            # Enviar a un usuario específico
             alerta = Alerta(
                 titulo=titulo,
                 mensaje=mensaje,

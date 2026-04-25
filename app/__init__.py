@@ -6,10 +6,8 @@ db = SQLAlchemy()
 def create_app():
     app = Flask(__name__)
 
-    # Cargar configuración
     app.config.from_object('config.Config')
     
-    # Configuración de seguridad de sesión
     from datetime import timedelta
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
@@ -17,7 +15,6 @@ def create_app():
 
     db.init_app(app)
 
-    # Importar modelos (IMPORTANTE)
     from app.models import (
         alerta,
         ambiente,
@@ -27,7 +24,7 @@ def create_app():
         caracteristica,
         categoria,
         devolucion,
-        inventario,
+        inventario_ambiente,
         login_auditoria,
         movimiento,
         reporte,
@@ -38,7 +35,6 @@ def create_app():
         usuario,
     )
 
-    # Registrar rutas
     from app.routes.usuario_routes import usuario_bp
     from app.routes.ambiente_routes import ambiente_bp
     from app.routes.inventario_routes import inventario_bp
@@ -84,243 +80,40 @@ def create_app():
         from app.routes.auth_helpers import get_user_role
         return render_template('dashboard.html', current_role=get_user_role())
 
-    def init_database():
-        app = create_app()
-        with app.app_context():
-            # Importar modelos
-            from app.models.usuario import Usuario
-            from app.models.rol import Rol
-            from app.models.ambiente import Ambiente
-            from app.models.articulo import Articulo
-            from app.models.categoria import Categoria
-            from app.models.inventario import Inventario
-            
-            db.create_all()
-            
-            # Roles
-            for rol_name in ['admin', 'auditor', 'revisor', 'instructor', 'aprendiz']:
-                if not Rol.query.filter_by(nombre=rol_name).first():
-                    db.session.add(Rol(nombre=rol_name))
-            
-            # Categoría
-            if not Categoria.query.filter_by(nombre='General').first():
-                db.session.add(Categoria(nombre='General'))
-            
-            db.session.commit()
-            
-            # Ambiente 208
-            ambiente = Ambiente.query.filter_by(nombre='Ambiente 208').first()
-            if not ambiente:
-                ambiente = Ambiente(nombre='Ambiente 208', tipo='Aula', ubicacion='Edificio Principal')
-                db.session.add(ambiente)
-                db.session.commit()
-            
-            # Artículos
-            articulos_data = [
-                ('Silla', 'SIL-001', 10),
-                ('Computador', 'COMP-001', 10),
-                ('Mesa', 'MES-001', 10),
-                ('Tablero', 'TAB-001', 1),
-                ('TV', 'TV-001', 1)
-            ]
-            
-            for nombre, codigo, cantidad in articulos_data:
-                articulo = Articulo.query.filter_by(nombre=nombre).first()
-                if not articulo:
-                    db.session.add(Articulo(
-                        nombre=nombre,
-                        codigo=codigo,
-                        descripcion=f'{nombre} para ambientes',
-                        id_categoria=1,
-                        cantidad=cantidad,
-                        nivel_minimo=2,
-                        estado='disponible'
-                    ))
-            
-            db.session.commit()
-            
-            # Obtener ambiente y artículos creados
-            ambiente = Ambiente.query.filter_by(nombre='Ambiente 208').first()
-            articulos = Articulo.query.all()
-            
-            # Crear inventario para el ambiente 208 si no existe
-            if ambiente and articulos:
-                for articulo in articulos:
-                    existe = Inventario.query.filter_by(
-                        id_ambiente=ambiente.id,
-                        id_articulo=articulo.id
-                    ).first()
-                    if not existe:
-                        db.session.add(Inventario(
-                            id_ambiente=ambiente.id,
-                            id_articulo=articulo.id,
-                            cantidad=articulo.cantidad,
-                            cantidad_minima=articulo.nivel_minimo or 2
-                        ))
-                db.session.commit()
-            
-            # Eliminar admin existente si hay uno
-            admin_existente = Usuario.query.filter(
-                (Usuario.email == 'admin@gmail.com') | (Usuario.nombre == 'admin')
-            ).first()
-            if admin_existente:
-                db.session.delete(admin_existente)
-                db.session.commit()
-
-            # Crear admin limpio
-            rol_admin = Rol.query.filter_by(nombre='admin').first()
-            nuevo_admin = Usuario(
-                nombre='admin',
-                email='admin@gmail.com',
-                password='admin123',
-                id_rol=rol_admin.id,
-                aprobado=True,
-                activo=True
-            )
-            db.session.add(nuevo_admin)
-            db.session.commit()
-
-            # Usuarios adicionales
-            usuarios_adicionales = [
-                ('Carlos Instructor', 'instructor@test.com', '123456', 'instructor'),
-                ('Ana Aprendiz', 'aprendiz@test.com', '123456', 'aprendiz'),
-                ('Luis Auditor', 'auditor@test.com', '123456', 'auditor'),
-                ('Maria Revisora', 'revisor@test.com', '123456', 'revisor')
-            ]
-            
-            for nombre, email, password, rol_nombre in usuarios_adicionales:
-                if not Usuario.query.filter_by(email=email).first():
-                    rol = Rol.query.filter_by(nombre=rol_nombre).first()
-                    db.session.add(Usuario(
-                        nombre=nombre,
-                        email=email,
-                        password=password,
-                        id_rol=rol.id,
-                        aprobado=True,
-                        activo=True
-                    ))
-            
-            db.session.commit()
-            print("✅ Base de datos inicializada")
-
     return app
 
-# Función global para inicializar la base de datos
+
 def init_database():
     app = create_app()
     with app.app_context():
-        # Importar modelos
         from app.models.usuario import Usuario
         from app.models.rol import Rol
-        from app.models.ambiente import Ambiente
-        from app.models.articulo import Articulo
         from app.models.categoria import Categoria
-        from app.models.inventario import Inventario
         
         db.create_all()
         
-        # Roles
         for rol_name in ['admin', 'auditor', 'revisor', 'instructor', 'aprendiz']:
             if not Rol.query.filter_by(nombre=rol_name).first():
                 db.session.add(Rol(nombre=rol_name))
         
-        # Categoría
         if not Categoria.query.filter_by(nombre='General').first():
             db.session.add(Categoria(nombre='General'))
         
         db.session.commit()
         
-        # Ambiente 208
-        ambiente = Ambiente.query.filter_by(nombre='Ambiente 208').first()
-        if not ambiente:
-            ambiente = Ambiente(nombre='Ambiente 208', tipo='Aula', ubicacion='Edificio Principal')
-            db.session.add(ambiente)
-            db.session.commit()
-        
-        # Artículos
-        articulos_data = [
-            ('Silla', 'SIL-001', 10),
-            ('Computador', 'COMP-001', 10),
-            ('Mesa', 'MES-001', 10),
-            ('Tablero', 'TAB-001', 1),
-            ('TV', 'TV-001', 1)
-        ]
-        
-        for nombre, codigo, cantidad in articulos_data:
-            articulo = Articulo.query.filter_by(nombre=nombre).first()
-            if not articulo:
-                db.session.add(Articulo(
-                    nombre=nombre,
-                    codigo=codigo,
-                    descripcion=f'{nombre} para ambientes',
-                    id_categoria=1,
-                    cantidad=cantidad,
-                    nivel_minimo=2,
-                    estado='disponible'
-                ))
-        
-        db.session.commit()
-        
-        # Obtener ambiente y artículos creados
-        ambiente = Ambiente.query.filter_by(nombre='Ambiente 208').first()
-        articulos = Articulo.query.all()
-        
-        # Crear inventario para el ambiente 208 si no existe
-        if ambiente and articulos:
-            for articulo in articulos:
-                existe = Inventario.query.filter_by(
-                    id_ambiente=ambiente.id,
-                    id_articulo=articulo.id
-                ).first()
-                if not existe:
-                    db.session.add(Inventario(
-                        id_ambiente=ambiente.id,
-                        id_articulo=articulo.id,
-                        cantidad=articulo.cantidad,
-                        cantidad_minima=articulo.nivel_minimo or 2
-                    ))
-            db.session.commit()
-        
-        # Eliminar admin existente si hay uno
-        admin_existente = Usuario.query.filter(
-            (Usuario.email == 'admin@gmail.com') | (Usuario.nombre == 'admin')
-        ).first()
-        if admin_existente:
-            db.session.delete(admin_existente)
-            db.session.commit()
-
-        # Crear admin limpio
         rol_admin = Rol.query.filter_by(nombre='admin').first()
-        nuevo_admin = Usuario(
-            nombre='admin',
-            email='admin@gmail.com',
-            password='admin123',
-            id_rol=rol_admin.id,
-            aprobado=True,
-            activo=True
-        )
-        db.session.add(nuevo_admin)
-        db.session.commit()
-
-        # Usuarios adicionales
-        usuarios_adicionales = [
-            ('Carlos Instructor', 'instructor@test.com', '123456', 'instructor'),
-            ('Ana Aprendiz', 'aprendiz@test.com', '123456', 'aprendiz'),
-            ('Luis Auditor', 'auditor@test.com', '123456', 'auditor'),
-            ('Maria Revisora', 'revisor@test.com', '123456', 'revisor')
-        ]
         
-        for nombre, email, password, rol_nombre in usuarios_adicionales:
-            if not Usuario.query.filter_by(email=email).first():
-                rol = Rol.query.filter_by(nombre=rol_nombre).first()
-                db.session.add(Usuario(
-                    nombre=nombre,
-                    email=email,
-                    password=password,
-                    id_rol=rol.id,
-                    aprobado=True,
-                    activo=True
-                ))
+        if not Usuario.query.filter_by(email='admin@gmail.com').first():
+            admin = Usuario(
+                nombre='admin',
+                email='admin@gmail.com',
+                password='123456',
+                id_rol=rol_admin.id,
+                aprobado=True,
+                activo=True
+            )
+            db.session.add(admin)
+            db.session.commit()
+            print("Admin creado: admin@gmail.com / 123456")
         
-        db.session.commit()
-        print("✅ Base de datos inicializada")
+        print("Base de datos inicializada - Ambiente 208 eliminado")
