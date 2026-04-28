@@ -23,15 +23,13 @@ def create_app():
         asignacion,
         caracteristica,
         categoria,
-        devolucion,
+        historial_revision,
         inventario_ambiente,
         login_auditoria,
         movimiento,
         reporte,
-        reporte_daño,
         rol,
         solicitud,
-        solicitud_detalle,
         usuario,
     )
 
@@ -46,12 +44,9 @@ def create_app():
     from app.routes.asignacion_routes import asignacion_bp
     from app.routes.movimiento_routes import movimiento_bp
     from app.routes.reporte_routes import reporte_bp
-    from app.routes.reporte_dano_routes import reporte_dano_bp
     from app.routes.solicitud_routes import solicitud_bp
-    from app.routes.solicitud_detalle_routes import solicitud_detalle_bp
-    from app.routes.devolucion_routes import devolucion_bp
+    from app.routes.historial_routes import historial_bp
     from app.routes.rol_routes import rol_bp
-    from app.routes.login_auditoria_routes import login_auditoria_bp
 
     app.register_blueprint(usuario_bp)
     app.register_blueprint(ambiente_bp)
@@ -64,12 +59,9 @@ def create_app():
     app.register_blueprint(asignacion_bp)
     app.register_blueprint(movimiento_bp)
     app.register_blueprint(reporte_bp)
-    app.register_blueprint(reporte_dano_bp)
     app.register_blueprint(solicitud_bp)
-    app.register_blueprint(solicitud_detalle_bp)
-    app.register_blueprint(devolucion_bp)
+    app.register_blueprint(historial_bp)
     app.register_blueprint(rol_bp)
-    app.register_blueprint(login_auditoria_bp)
 
     @app.route('/')
     def index():

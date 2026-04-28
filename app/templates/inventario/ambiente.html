@@ -9,15 +9,20 @@
             <div class="card-body text-center">
                 <h2 class="card-title mb-4 fw-bold">Inventario - {{ ambiente.nombre }}</h2>
                 <p class="text-muted mb-4">Tipo: {{ ambiente.tipo }} | Ubicación: {{ ambiente.ubicacion }}</p>
-                <div>
-                    <button class="btn btn-success" onclick="checklistGeneral()">Checklist General</button>
-                    {% if current_role in ['admin', 'auditor', 'instructor', 'aprendiz'] %}
-                    <button class="btn btn-warning" onclick="abrirSolicitudGeneral()">Nueva Solicitud</button>
-                    <button class="btn btn-danger" onclick="abrirReporteGeneral()">Nuevo Reporte</button>
-                    {% endif %}
-                    {% if current_role in ['admin', 'auditor'] %}
-                    <a href="/inventario/editar/{{ ambiente.id }}" class="btn btn-primary">Editar Inventario</a>
-                    {% endif %}
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div class="mb-2 mb-md-0">
+                        <button class="btn btn-success" onclick="checklistGeneral()">Checklist General</button>
+                        {% if current_role in ['admin', 'auditor', 'instructor', 'aprendiz'] %}
+                        <button class="btn btn-warning" onclick="abrirSolicitudGeneral()">Nueva Solicitud</button>
+                        <button class="btn btn-danger" onclick="abrirReporteGeneral()">Nuevo Reporte</button>
+                        {% endif %}
+                        {% if current_role in ['admin', 'auditor'] %}
+                        <a href="/inventario/editar/{{ ambiente.id }}" class="btn btn-primary">Editar Inventario</a>
+                        {% endif %}
+                    </div>
+                    <div class="mb-2 mb-md-0">
+                        <a href="/historial/{{ ambiente.id }}" class="btn btn-info">Historial de Inventario</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -86,7 +91,6 @@
     </div>
 </div>
 
-{% if current_role in ['admin', 'auditor', 'instructor', 'aprendiz'] %}
 <style>
 .modal {display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;}
 .modal-content {background:#fff; margin:10% auto; padding:20px; width:90%; max-width:500px; border-radius:10px;}
@@ -97,6 +101,18 @@
 .modal-btn-secondary {background:#6c757d; color:#fff;}
 </style>
 
+<div id="modalChecklist" class="modal">
+    <div class="modal-content">
+        <h3>Checklist General - Observaciones</h3>
+        <textarea id="checklistObservaciones" placeholder="Escribe observaciones aquí (opcional)..."></textarea>
+        <div>
+            <button class="modal-btn modal-btn-primary" onclick="ejecutarChecklist()">Aceptar</button>
+            <button class="modal-btn modal-btn-secondary" onclick="cerrarModalChecklist()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+{% if current_role in ['admin', 'auditor', 'instructor', 'aprendiz'] %}
 <div id="modalAccion" class="modal">
     <div class="modal-content">
         <h3 id="modalTitulo">Título</h3>
@@ -125,27 +141,42 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 <script>
 var accionActual = '';
 var inventarioActual = 0;
 
 function checklistGeneral() {
-    var items = document.querySelectorAll('[data-inv-id]');
-    var prom = Promise.resolve();
-    items.forEach(function(item) {
-        prom = prom.then(function() {
-            return fetch('/inventario/checklist/' + item.dataset.invId, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({observaciones: 'Checklist general'})
-            });
-        });
-    });
-    prom.then(function() { alert('Checklist general realizado'); })
-    .catch(function() { alert('Error en checklist'); });
+    document.getElementById('checklistObservaciones').value = '';
+    document.getElementById('modalChecklist').style.display = 'block';
 }
 
+function cerrarModalChecklist() {
+    document.getElementById('modalChecklist').style.display = 'none';
+}
+
+function ejecutarChecklist() {
+    var observaciones = document.getElementById('checklistObservaciones').value;
+    cerrarModalChecklist();
+    
+    // Get ambiente_id from the page
+    var ambienteId = {{ ambiente.id|tojson }};
+    
+    fetch('/inventario/checklist_general/' + ambienteId, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({observaciones: observaciones})
+    })
+    .then(function() { 
+        alert('Checklist realizado exitosamente'); 
+    })
+    .catch(function() { alert('Error en checklist'); });
+}
+</script>
+
+{% if current_role in ['admin', 'auditor', 'instructor', 'aprendiz'] %}
+<script>
 function abrirCambioInventario(invId, nombreArticulo, cantidadActual) {
     inventarioActual = invId;
     document.getElementById('invArticuloNombre').textContent = nombreArticulo;

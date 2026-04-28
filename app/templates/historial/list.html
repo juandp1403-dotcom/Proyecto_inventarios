@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Historial de Revisiones - {{ ambiente.nombre }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mb-4">
+    <div class="col-lg-10">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title mb-3">Historial de Revisiones: {{ ambiente.nombre }}</h2>
+                <p class="text-muted">Registro de todas las acciones realizadas en este ambiente</p>
+                <a href="/inventario/ambiente/{{ ambiente.id }}" class="btn btn-outline-secondary btn-sm">Volver al inventario</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        {% for item in historial %}
+        <div class="card shadow-sm mb-3 {% if item.tipo_accion == 'edicion_inventario' %}border-start border-primary border-4{% elif item.tipo_accion == 'checklist' %}border-start border-success border-4{% elif item.tipo_accion == 'solicitud' %}border-start border-warning border-4{% elif item.tipo_accion == 'reporte' %}border-start border-danger border-4{% elif item.tipo_accion == 'actualizacion' %}border-start border-info border-4{% else %}border-start border-secondary border-4{% endif %}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="card-title mb-2">
+                            {% if item.tipo_accion == 'edicion_inventario' %}
+                            <i class="fas fa-edit text-primary me-2"></i>
+                            {% elif item.tipo_accion == 'checklist' %}
+                            <i class="fas fa-clipboard-check text-success me-2"></i>
+                            {% elif item.tipo_accion == 'solicitud' %}
+                            <i class="fas fa-file-alt text-warning me-2"></i>
+                            {% elif item.tipo_accion == 'reporte' %}
+                            <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                            {% elif item.tipo_accion == 'actualizacion' %}
+                            <i class="fas fa-sync text-info me-2"></i>
+                            {% else %}
+                            <i class="fas fa-history text-secondary me-2"></i>
+                            {% endif %}
+                            {{ item.tipo_accion | replace('_', ' ') | title }}
+                        </h5>
+                        <p class="card-text">{{ item.descripcion }}</p>
+                        {% if item.id_referencia %}
+                        <small class="text-muted">Referencia ID: {{ item.id_referencia }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted">
+                            {{ item.fecha_revision.strftime('%d/%m/%Y %H:%M:%S') }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No hay registros en el historial para este ambiente.
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

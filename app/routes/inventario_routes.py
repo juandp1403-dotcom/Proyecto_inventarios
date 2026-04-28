@@ -6,13 +6,13 @@ from app.models.ambiente import Ambiente
 from app.models.inventario_ambiente import InventarioAmbiente
 from app.models.articulo import Articulo
 from app.models.alerta import Alerta
+from app.models.historial_revision import HistorialRevision
 
 inventario_bp = Blueprint('inventario', __name__, url_prefix='/inventario')
 
 
 @inventario_bp.route('/', methods=['GET'])
 @login_required
-@role_required('admin', 'auditor', 'revisor', 'instructor', 'aprendiz')
 def listar_inventarios():
     ambientes = Ambiente.query.all()
     return render_template('inventario/list.html', ambientes=ambientes, current_role=get_user_role())
@@ -20,7 +20,6 @@ def listar_inventarios():
 
 @inventario_bp.route('/ambiente/<int:ambiente_id>', methods=['GET'])
 @login_required
-@role_required('admin', 'auditor', 'revisor', 'instructor', 'aprendiz')
 def inventario_por_ambiente(ambiente_id):
     ambiente = Ambiente.query.get_or_404(ambiente_id)
     inventario_items = InventarioAmbiente.query.filter_by(id_ambiente=ambiente_id).all()
@@ -89,6 +88,14 @@ def editar_inventario_amiente(ambiente_id):
         ))
     
     db.session.commit()
+    
+    HistorialRevision.registrar_revision(
+        id_ambiente=ambiente_id,
+        tipo_accion='edicion_inventario',
+        descripcion=f'Inventario del ambiente actualizado',
+        id_usuario=session.get('user_id')
+    )
+    
     return jsonify({'message': 'Inventario actualizado correctamente'})
 
 
@@ -115,26 +122,41 @@ def movimiento_inventario():
     return jsonify({'message': 'Movimiento de inventario registrado', 'datos': data})
 
 
-@inventario_bp.route('/checklist/<int:inventario_id>', methods=['POST'])
+@inventario_bp.route('/checklist_general/<int:ambiente_id>', methods=['POST'])
 @login_required
-@role_required('admin', 'auditor', 'instructor', 'aprendiz')
-def checklist_item(inventario_id):
+def checklist_general(ambiente_id):
     from app.models.movimiento import Movimiento
     
-    inventario = InventarioAmbiente.query.get_or_404(inventario_id)
     data = request.get_json() or {}
+    observaciones = data.get('observaciones', '')
     
-    movimiento = Movimiento(
-        tipo='checklist',
-        id_articulo=inventario.id_articulo,
-        id_usuario=session.get('user_id'),
-        cantidad=inventario.cantidad,
-        observaciones=data.get('observaciones', '')
-    )
-    db.session.add(movimiento)
+    inventario_items = InventarioAmbiente.query.filter_by(id_ambiente=ambiente_id).all()
+    
+    for inventario in inventario_items:
+        movimiento = Movimiento(
+            tipo='checklist',
+            id_articulo=inventario.id_articulo,
+            id_usuario=session.get('user_id'),
+            cantidad=inventario.cantidad,
+            observacion=observaciones
+        )
+        db.session.add(movimiento)
+    
     db.session.commit()
     
-    return jsonify({'message': 'Checklist registrado correctamente'})
+    descripcion = f'Checklist general realizado para ambiente #{ambiente_id}'
+    if observaciones:
+        descripcion += f' - Observación: {observaciones}'
+    
+    HistorialRevision.registrar_revision(
+        id_ambiente=ambiente_id,
+        tipo_accion='checklist',
+        descripcion=descripcion,
+        id_referencia=ambiente_id,
+        id_usuario=session.get('user_id')
+    )
+    
+    return jsonify({'message': 'Checklist general registrado correctamente'})
 
 
 @inventario_bp.route('/solicitud/<int:inventario_id>', methods=['POST'])
@@ -155,6 +177,14 @@ def crear_solicitud(inventario_id):
     )
     db.session.add(solicitud)
     db.session.commit()
+    
+    HistorialRevision.registrar_revision(
+        id_ambiente=inventario.id_ambiente,
+        tipo_accion='solicitud',
+        descripcion=f'Solicitud #{solicitud.id} creada: {solicitud.justificacion[:50]}',
+        id_referencia=solicitud.id,
+        id_usuario=session.get('user_id')
+    )
     
     Alerta.crear_alerta(
         titulo='Nueva solicitud',
@@ -184,6 +214,14 @@ def crear_reporte(inventario_id):
     db.session.add(reporte)
     db.session.commit()
     
+    HistorialRevision.registrar_revision(
+        id_ambiente=inventario.id_ambiente,
+        tipo_accion='reporte',
+        descripcion=f'Reporte #{reporte.id} creado: {reporte.filtros[:50]}',
+        id_referencia=reporte.id,
+        id_usuario=session.get('user_id')
+    )
+    
     Alerta.crear_alerta(
         titulo='Nuevo reporte',
         mensaje=f'Reporte #{reporte.id}: {reporte.filtros[:50]}',
@@ -207,6 +245,14 @@ def actualizar_inventario(inventario_id):
         inventario.cantidad_minima = int(data.get('cantidad_minima'))
     
     db.session.commit()
+    
+    HistorialRevision.registrar_revision(
+        id_ambiente=inventario.id_ambiente,
+        tipo_accion='actualizacion',
+        descripcion=f'Inventario #{inventario_id} actualizado',
+        id_referencia=inventario_id,
+        id_usuario=session.get('user_id')
+    )
     
     return jsonify({'message': 'Inventario actualizado correctamente'})
 
