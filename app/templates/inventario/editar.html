@@ -15,12 +15,14 @@
                         <label for="cantidad" class="form-label">Cantidad Actual</label>
                         <input type="number" class="form-control" id="cantidad" name="cantidad" 
                                value="{{ inventario.cantidad }}" min="1" required>
+                        <div class="form-text">Número de unidades disponibles actualmente en el ambiente.</div>
                     </div>
                     
                     <div class="mb-3">
                         <label for="cantidad_minima" class="form-label">Cantidad Mínima</label>
                         <input type="number" class="form-control" id="cantidad_minima" name="cantidad_minima" 
                                value="{{ inventario.cantidad_minima }}" min="1" required>
+                        <div class="form-text">Cuando el stock baje de este número, el sistema enviará una alerta automática.</div>
                     </div>
                     
                     <div class="d-grid gap-2">
