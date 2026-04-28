@@ -10,6 +10,9 @@ class Solicitud(db.Model):
     estado = db.Column(db.String(20), default='pendiente')
     justificacion = db.Column(db.Text, nullable=True)
     fecha_solicitud = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    ambiente = db.relationship('Ambiente', backref='solicitudes')
+    usuario = db.relationship('Usuario', backref='solicitudes')
 
     def __repr__(self):
         return f"Solicitud('{self.id_usuario}', '{self.cantidad}', '{self.estado}', '{self.justificacion}', '{self.fecha_solicitud}')"

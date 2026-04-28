@@ -20,7 +20,7 @@
                         <select class="form-select" id="id_ambiente" name="id_ambiente" required>
                             <option value="">Seleccionar ambiente...</option>
                             {% for ambiente in ambientes %}
-                            <option value="{{ environment.id }}">{{ environment.nombre }}</option>
+                            <option value="{{ ambiente.id }}">{{ ambiente.nombre }}</option>
                             {% endfor %}
                         </select>
                     </div>

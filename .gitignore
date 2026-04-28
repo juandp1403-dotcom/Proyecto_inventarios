@@ -1,2 +1,44 @@
-/venv
-*.pyc
+# Entorno virtual
+venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+
+# Base de datos
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Archivos de entorno y secretos
+.env
+.env.*
+
+# Archivos comprimidos y temporales
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+
+# IDE y editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Flask
+.flaskenv
+instance/config.py
+
+# Otros
+.DS_Store
+Thumbs.db

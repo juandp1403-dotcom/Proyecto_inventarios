@@ -10,5 +10,8 @@ class Reporte(db.Model):
     id_ambiente = db.Column(db.Integer, db.ForeignKey('ambiente.id'), nullable=True)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
     
+    ambiente = db.relationship('Ambiente', backref='reportes')
+    usuario = db.relationship('Usuario', backref='reportes')
+    
     def __repr__(self):
         return f"Reporte('{self.tipo}', '{self.filtros}', '{self.fecha_creacion}')"
