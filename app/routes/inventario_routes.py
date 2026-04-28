@@ -34,7 +34,7 @@ def inventario_por_ambiente(ambiente_id):
 
 @inventario_bp.route('/editar/<int:ambiente_id>', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'auditor')
+@role_required('admin')
 def editar_inventario_amiente(ambiente_id):
     ambiente = Ambiente.query.get_or_404(ambiente_id)
     
@@ -139,7 +139,7 @@ def checklist_item(inventario_id):
 
 @inventario_bp.route('/solicitud/<int:inventario_id>', methods=['POST'])
 @login_required
-@role_required('admin', 'auditor', 'instructor', 'aprendiz')
+@role_required('admin', 'auditor', 'instructor')
 def crear_solicitud(inventario_id):
     from app.models.solicitud import Solicitud
     
@@ -168,7 +168,7 @@ def crear_solicitud(inventario_id):
 
 @inventario_bp.route('/reporte/<int:inventario_id>', methods=['POST'])
 @login_required
-@role_required('admin', 'auditor', 'instructor', 'aprendiz')
+@role_required('admin', 'auditor', 'instructor')
 def crear_reporte(inventario_id):
     from app.models.reporte import Reporte
     
@@ -213,7 +213,7 @@ def actualizar_inventario(inventario_id):
 
 @inventario_bp.route('/eliminar_todo/<int:ambiente_id>', methods=['POST'])
 @login_required
-@role_required('admin', 'auditor')
+@role_required('admin')
 def eliminar_todo_inventario(ambiente_id):
     InventarioAmbiente.query.filter_by(id_ambiente=ambiente_id).delete()
     db.session.commit()

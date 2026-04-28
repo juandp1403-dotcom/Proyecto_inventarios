@@ -18,20 +18,20 @@ def ver_articulo(articulo_id):
 
 
 @articulo_bp.route('/', methods=['POST'])
-@role_required('auditor', 'revisor')
+@role_required('admin', 'auditor')
 def crear_articulo():
     data = request.get_json() or {}
     return jsonify({'message': 'Artículo creado', 'datos': data}), 201
 
 
 @articulo_bp.route('/<int:articulo_id>', methods=['PUT'])
-@role_required('auditor', 'revisor')
+@role_required('admin', 'auditor')
 def editar_articulo(articulo_id):
     data = request.get_json() or {}
     return jsonify({'message': f'Artículo {articulo_id} actualizado', 'datos': data})
 
 
 @articulo_bp.route('/<int:articulo_id>', methods=['DELETE'])
-@role_required('auditor')
+@role_required('admin')
 def eliminar_articulo(articulo_id):
     return jsonify({'message': f'Artículo {articulo_id} eliminado'})

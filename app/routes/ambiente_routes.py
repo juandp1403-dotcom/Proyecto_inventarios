@@ -35,7 +35,7 @@ def ambiente_inventario(ambiente_id):
 
 @ambiente_bp.route('/crear', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'auditor')
+@role_required('admin')
 def crear_ambiente():
     if request.method == 'GET':
         return render_template('inventario/crear_ambiente.html', accion='crear', current_role=get_user_role())
@@ -86,7 +86,7 @@ def crear_ambiente():
 
 @ambiente_bp.route('/<int:ambiente_id>/editar', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'auditor')
+@role_required('admin')
 def editar_ambiente(ambiente_id):
     ambiente = Ambiente.query.get_or_404(ambiente_id)
     
