@@ -90,11 +90,14 @@ def crear_usuario():
     if Usuario.query.filter_by(nombre=nombre).first():
         return jsonify({'error': 'Ya existe un usuario con ese nombre'}), 409
 
+    aprobado = True if current_role == 'admin' else False
     nuevo_usuario = Usuario(
         nombre=nombre,
         email=email,
         password=password,
-        id_rol=rol.id
+        id_rol=rol.id,
+        aprobado=aprobado,
+        activo=True
     )
     db.session.add(nuevo_usuario)
     db.session.commit()
