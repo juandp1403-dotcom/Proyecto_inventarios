@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 from app.models.usuario import Usuario
 from app.models.login_auditoria import Login_auditoria
@@ -19,8 +20,11 @@ def record_audit_login(user_id, email, success):
     db.session.commit()
 
 
-@usuario_bp.route('/login', methods=['POST'])
+@usuario_bp.route('/login', methods=['GET', 'POST'])
 def login_usuario():
+    if request.method == 'GET':
+        return redirect(url_for('dashboard'))
+
     data = request.get_json(silent=True) or request.form or {}
     email = data.get('email')
     password = data.get('password')
@@ -32,8 +36,8 @@ def login_usuario():
     if not usuario:
         return jsonify({'error': 'Usuario no encontrado'}), 404
 
-    # Aquí debería verificarse la contraseña con hash.
-    if usuario.password != password:
+    # Verificar contraseña con hash
+    if not check_password_hash(usuario.password, password):
         return jsonify({'error': 'Credenciales inválidas'}), 401
 
     session['user_id'] = usuario.id
@@ -59,13 +63,34 @@ def crear_usuario():
     
     # POST method existing code
     data = request.get_json(silent=True) or request.form or {}
-    nombre = data.get('nombre')
-    email = data.get('email')
-    password = data.get('password')
+    
+    # DEBUG: Ver qué datos llegan
+    print(f"DEBUG - Datos recibidos: {dict(data)}")
+    
+    nombre = data.get('nombre', '').strip()
+    email = data.get('email', '').strip()
+    password = data.get('password', '').strip()
+    password_confirm = data.get('password_confirm', '').strip()
     rol_nombre = (data.get('rol') or '').strip().lower()
+    
+    # DEBUG: Ver valores procesados
+    print(f"DEBUG - password: '{password}', password_confirm: '{password_confirm}'")
 
-    if not nombre or not email or not password or not rol_nombre:
-        return jsonify({'error': 'Nombre, email, password y rol son requeridos'}), 400
+    # Validar campos requeridos con mensajes específicos
+    if not nombre:
+        return jsonify({'error': 'El nombre es requerido'}), 400
+    if not email:
+        return jsonify({'error': 'El correo electrónico es requerido'}), 400
+    if not password:
+        return jsonify({'error': 'La contraseña es requerida'}), 400
+    if not password_confirm:
+        return jsonify({'error': 'Debes confirmar la contraseña'}), 400
+    if not rol_nombre:
+        return jsonify({'error': 'Debes seleccionar un rol'}), 400
+    
+    # Validar que las contraseñas coincidan
+    if password != password_confirm:
+        return jsonify({'error': f'Las contraseñas no coinciden. Pass: {len(password)} chars, Confirm: {len(password_confirm)} chars'}), 400
 
     if rol_nombre not in ['aprendiz', 'instructor', 'auditor', 'revisor', 'admin']:
         return jsonify({'error': 'Rol inválido'}), 400
@@ -94,7 +119,7 @@ def crear_usuario():
     nuevo_usuario = Usuario(
         nombre=nombre,
         email=email,
-        password=password,
+        password=generate_password_hash(password),
         id_rol=rol.id,
         aprobado=aprobado,
         activo=True
@@ -120,7 +145,7 @@ def login_auditor():
     usuario = Usuario.query.filter_by(email=email).first()
     success = False
 
-    if usuario and usuario.password == password:
+    if usuario and check_password_hash(usuario.password, password):
         # Solo los auditores pueden usar esta ruta.
         rol = Rol.query.get(usuario.id_rol)
         if rol and rol.nombre.lower() == 'auditor':
@@ -220,7 +245,7 @@ def editar_usuario(id):
         usuario.nombre = data.get('nombre', usuario.nombre)
         usuario.email = data.get('email', usuario.email)
         if data.get('password'):
-            usuario.password = data.get('password')
+            usuario.password = generate_password_hash(data.get('password'))
         nuevo_rol = data.get('rol')
         if nuevo_rol:
             rol = Rol.query.filter_by(nombre=nuevo_rol).first()

@@ -7,7 +7,7 @@
     <div class="col-lg-6">
         <div class="card shadow-sm">
             <div class="card-body text-center">
-                <h2 class="card-title mb-4">Crear usuario</h2>
+                <h2 class="card-title mb-4">Registrarse como aprendiz</h2>
                 <form action="/usuario/crear" method="post">
                     <div class="mb-3">
                         <label for="nombre" class="form-label">Nombre</label>
@@ -20,6 +20,10 @@
                     <div class="mb-3">
                         <label for="password" class="form-label">Contraseña</label>
                         <input type="password" id="password" name="password" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password_confirm" class="form-label">Confirmar contraseña</label>
+                        <input type="password" id="password_confirm" name="password_confirm" class="form-control" required>
                     </div>
                     <div class="mb-3">
                         <label for="rol" class="form-label">Rol</label>
@@ -48,4 +52,44 @@
         </div>
     </div>
 </div>
+
+<script>
+// Validación en tiempo real de las contraseñas
+const password = document.getElementById('password');
+const passwordConfirm = document.getElementById('password_confirm');
+const form = document.querySelector('form');
+
+function validarPasswords() {
+    const pass1 = password.value.trim();
+    const pass2 = passwordConfirm.value.trim();
+    
+    if (passwordConfirm.value === '') {
+        passwordConfirm.classList.remove('is-invalid', 'is-valid');
+        return;
+    }
+    
+    if (pass1 === pass2) {
+        passwordConfirm.classList.remove('is-invalid');
+        passwordConfirm.classList.add('is-valid');
+    } else {
+        passwordConfirm.classList.remove('is-valid');
+        passwordConfirm.classList.add('is-invalid');
+    }
+}
+
+password.addEventListener('input', validarPasswords);
+passwordConfirm.addEventListener('input', validarPasswords);
+
+// Validar al enviar el formulario
+form.addEventListener('submit', function(e) {
+    const pass1 = password.value.trim();
+    const pass2 = passwordConfirm.value.trim();
+    
+    if (pass1 !== pass2) {
+        e.preventDefault();
+        alert('Las contraseñas no coinciden. Por favor verifica.');
+        passwordConfirm.focus();
+    }
+});
+</script>
 {% endblock %}

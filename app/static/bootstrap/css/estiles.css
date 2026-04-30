@@ -1,0 +1,51 @@
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #5aa0b9 0%, #7c59c7 100%);
+    margin: 0;
+}
+
+
+.login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+/* TARJETA */
+.login-card {
+    width: 100%;
+    max-width: 400px;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.95);
+}
+
+#register-section {
+    display: none;
+}
+
+
+.form-control {
+    border-radius: 8px;
+}
+
+
+.btn-primary {
+    background: #c33764;
+    border: none;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+.btn-primary:hover {
+    background: #1d2671;
+}
+
+.btn-link {
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
