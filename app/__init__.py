@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, render_template
+from flask import Flask, redirect, url_for, render_template, session
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -62,6 +62,31 @@ def create_app():
     app.register_blueprint(solicitud_bp)
     app.register_blueprint(historial_bp)
     app.register_blueprint(rol_bp)
+
+    # Headers anti-caché para evitar problemas de templates viejos
+    @app.after_request
+    def add_header(response):
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
+        return response
+
+    @app.context_processor
+    def inject_user():
+        from app.models.usuario import Usuario
+        from app.routes.auth_helpers import get_user_role
+
+        current_role = get_user_role()
+        current_user = None
+        user_id = session.get('user_id')
+        if user_id:
+            usuario = Usuario.query.get(user_id)
+            current_user = usuario.nombre if usuario else None
+
+        return {
+            'current_user': current_user,
+            'current_role': current_role
+        }
 
     @app.route('/')
     def index():

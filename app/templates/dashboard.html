@@ -26,38 +26,7 @@
                 </form>
                 <hr class="my-4">
                 <p class="text-muted mb-3">¿No tienes cuenta?</p>
-                <button type="button" class="btn btn-outline-success btn-lg" onclick="toggleRegister()">Registrarse como aprendiz</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row justify-content-center w-100" id="registerSection" style="display: none;">
-    <div class="col-lg-6 mb-4">
-        <div class="card shadow-sm">
-            <div class="card-body text-center">
-                <h2 class="card-title mb-4">Registrarse como aprendiz</h2>
-                <p class="text-muted mb-4">Crea una cuenta básica de aprendiz para comenzar.</p>
-                <form action="/usuario/crear" method="post">
-                    <input type="hidden" name="rol" value="aprendiz">
-                    <div class="mb-3">
-                        <label for="registerName" class="form-label">Nombre</label>
-                        <input type="text" id="registerName" name="nombre" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="registerEmail" class="form-label">Correo electrónico</label>
-                        <input type="email" id="registerEmail" name="email" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="registerPassword" class="form-label">Contraseña</label>
-                        <input type="password" id="registerPassword" name="password" class="form-control" required>
-                    </div>
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-success btn-lg">Registrarse</button>
-                    </div>
-                </form>
-                <hr class="my-4">
-                <button type="button" class="btn btn-outline-secondary" onclick="toggleRegister()">Volver al inicio de sesión</button>
+                <a href="/usuario/crear" class="btn btn-outline-success btn-lg">Registrarse como aprendiz</a>
             </div>
         </div>
     </div>
@@ -147,19 +116,4 @@
 {% endif %}
 {% endblock %}
 
-{% block scripts %}
-<script>
-function toggleRegister() {
-    const loginSection = document.querySelector('.row.justify-content-center');
-    const registerSection = document.getElementById('registerSection');
-    
-    if (registerSection.style.display === 'none' || registerSection.style.display === '') {
-        registerSection.style.display = 'flex';
-        loginSection.style.display = 'none';
-    } else {
-        registerSection.style.display = 'none';
-        loginSection.style.display = 'flex';
-    }
-}
-</script>
 {% endblock %}

@@ -1,3 +1,6 @@
+import os
+import secrets
+from werkzeug.security import generate_password_hash
 from app import create_app, db
 from app.models import *
 
@@ -22,17 +25,25 @@ def init_database():
         rol_admin = Rol.query.filter_by(nombre='admin').first()
         
         if not Usuario.query.filter_by(email='admin@gmail.com').first():
+            # Obtener contraseña de variable de entorno o generar una aleatoria
+            admin_password = os.getenv('ADMIN_PASSWORD')
+            if not admin_password:
+                admin_password = secrets.token_urlsafe(12)
+                print(f"[!] Variable ADMIN_PASSWORD no definida")
+                print(f"[!] Contraseña generada aleatoriamente: {admin_password}")
+                print(f"[!] Guarde esta contraseña y configure ADMIN_PASSWORD para futuras ejecuciones")
+            
             admin = Usuario(
                 nombre='admin',
                 email='admin@gmail.com',
-                password='123456',
+                password=generate_password_hash(admin_password),
                 id_rol=rol_admin.id,
                 aprobado=True,
                 activo=True
             )
             db.session.add(admin)
             db.session.commit()
-            print("Admin creado: admin@gmail.com / 123456")
+            print("[+] Admin creado exitosamente: admin@gmail.com")
         
         print("Base de datos inicializada")
 
