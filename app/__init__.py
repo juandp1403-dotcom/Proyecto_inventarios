@@ -124,7 +124,7 @@ def init_database():
             admin = Usuario(
                 nombre='admin',
                 email='admin@gmail.com',
-                password='123456',
+                password='admin123',
                 id_rol=rol_admin.id,
                 aprobado=True,
                 activo=True
