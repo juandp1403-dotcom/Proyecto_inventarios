@@ -10,7 +10,7 @@
                 <h2 class="card-title mb-4 fw-bold">Reportes</h2>
                 <p class="text-muted mb-4">Visualiza los reportes generados en el sistema.</p>
                 {% if current_role in ['instructor', 'auditor', 'revisor'] %}
-                <a href="/reportes/nuevo" class="btn btn-primary btn-lg">Nuevo reporte</a>
+                <a href="{{ url_for('reporte.crear_reporte') }}" class="btn btn-primary btn-lg">Nuevo reporte</a>
                 {% endif %}
             </div>
         </div>

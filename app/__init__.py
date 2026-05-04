@@ -1,5 +1,6 @@
 from flask import Flask, redirect, url_for, render_template, session
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash
 
 db = SQLAlchemy()
 
@@ -124,7 +125,7 @@ def init_database():
             admin = Usuario(
                 nombre='admin',
                 email='admin@gmail.com',
-                password='admin123',
+                password=generate_password_hash('123456'),
                 id_rol=rol_admin.id,
                 aprobado=True,
                 activo=True

@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, render_template, session
+from flask import Blueprint, jsonify, request, render_template, session, redirect, url_for
 from app import db
 from app.routes.auth_helpers import role_required, get_user_role
 from app.routes.auth_decorators import login_required
@@ -30,7 +30,12 @@ def crear_reporte():
     if request.method == 'GET':
         return render_template('reporte/form.html', accion='crear', current_role=get_user_role(), ambientes=ambientes)
     
-    data = request.get_json() or request.form
+    # Manejar tanto JSON como form data
+    data = request.get_json(silent=True) or request.form
+    
+    if not data:
+        return jsonify({'error': 'No se recibieron datos'}), 400
+    
     reporte = Reporte(
         tipo=data.get('tipo'),
         filtros=data.get('filtros'),
@@ -47,7 +52,17 @@ def crear_reporte():
         id_referencia=reporte.id
     )
     
-    return jsonify({'message': 'Reporte creado correctamente', 'id': reporte.id}), 201
+    if request.is_json:
+        return jsonify({'message': 'Reporte creado correctamente', 'id': reporte.id}), 201
+    else:
+        return redirect(url_for('reporte.listar_reportes'))
+
+
+@reporte_bp.route('/nuevo', methods=['GET'])
+@login_required
+@role_required('admin', 'auditor', 'revisor', 'instructor')
+def nuevo_reporte():
+    return redirect(url_for('reporte.crear_reporte'))
 
 
 @reporte_bp.route('/', methods=['POST'])
