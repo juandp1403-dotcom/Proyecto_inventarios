@@ -1,4 +1,4 @@
-# Entorno virtual
+# Entornos virtuales
 venv/
 env/
 ENV/
@@ -18,17 +18,17 @@ instance/
 *.sqlite
 *.sqlite3
 
-# Archivos de entorno y secretos
+# Variables de entorno
 .env
 .env.*
 
-# Archivos comprimidos y temporales
+# Archivos temporales
 *.zip
 *.tar
 *.tar.gz
 *.tgz
 
-# IDE y editores
+# IDEs
 .vscode/
 .idea/
 *.swp
@@ -39,6 +39,6 @@ instance/
 .flaskenv
 instance/config.py
 
-# Otros
+# Sistema
 .DS_Store
 Thumbs.db
