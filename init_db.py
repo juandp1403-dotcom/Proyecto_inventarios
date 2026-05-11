@@ -3,8 +3,9 @@ from werkzeug.security import generate_password_hash
 from app import create_app, db
 from app.models import *
 
-def init_database():
-    app = create_app()
+def init_database(app=None):
+    if app is None:
+        app = create_app()
     with app.app_context():
         db.create_all()
         

@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # Servicio de la aplicación web para desarrollo
   web:
     build: .
     container_name: inventarios_web_dev
@@ -15,10 +14,14 @@ services:
       - SECRET_KEY=clave_de_desarrollo
     volumes:
       - .:/app
-      - ./instance:/app/instance
+      - inventarios_data:/app/instance
     networks:
       - inventarios_network
     restart: unless-stopped
+
+volumes:
+  inventarios_data:
+    driver: local
 
 networks:
   inventarios_network:

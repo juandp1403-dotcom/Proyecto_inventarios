@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # Servicio de la aplicación web
   web:
     build: .
     container_name: inventarios_web
@@ -10,49 +9,16 @@ services:
     environment:
       - FLASK_APP=run.py
       - FLASK_ENV=production
-      - DATABASE_URL=postgresql://postgres:password@db:5432/inventarios
+      - DATABASE_URL=sqlite:///instance/site.db
       - SECRET_KEY=clave_secreta_para_produccion_cambiar_esta
-    depends_on:
-      - db
     volumes:
-      - ./instance:/app/instance
-    networks:
-      - inventarios_network
-    restart: unless-stopped
-
-  # Base de datos PostgreSQL
-  db:
-    image: postgres:15-alpine
-    container_name: inventarios_db
-    environment:
-      - POSTGRES_DB=inventarios
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
-    ports:
-      - "5432:5432"
-    networks:
-      - inventarios_network
-    restart: unless-stopped
-
-  # Servicio de base de datos administrativo (opcional)
-  adminer:
-    image: adminer:latest
-    container_name: inventarios_adminer
-    ports:
-      - "8081:8080"
-    environment:
-      - ADMINER_DEFAULT_SERVER=db
-    depends_on:
-      - db
+      - inventarios_data:/app/instance
     networks:
       - inventarios_network
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  inventarios_data:
     driver: local
 
 networks:

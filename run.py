@@ -1,10 +1,11 @@
 from app import create_app
 from init_db import init_database
-
-init_database()
+import os
 
 app = create_app()
 
 if __name__ == '__main__':
-    debug_mode = True if __import__('os').getenv('FLASK_ENV') == 'development' else False
+    init_database(app)
+
+    debug_mode = os.getenv('FLASK_ENV') == 'development'
     app.run(host='0.0.0.0', port=5000, debug=debug_mode)
