@@ -54,7 +54,7 @@ docker-compose down -v
 ## Acceso
 
 - **Aplicación**: http://localhost:5000
-- **Adminer (BD)**: http://localhost:8080
+- **Adminer (BD)**: http://localhost:8081
   - Servidor: db
   - Usuario: postgres
   - Contraseña: password
