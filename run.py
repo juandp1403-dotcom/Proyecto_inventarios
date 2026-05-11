@@ -2,6 +2,8 @@ from app import create_app
 from init_db import init_database
 import os
 
+os.makedirs('instance', exist_ok=True)
+
 app = create_app()
 
 if __name__ == '__main__':
