@@ -20,7 +20,10 @@ instance/
 
 # Variables de entorno
 .env
-.env.*
+.env.local
+.env.production
+.env.development
+!.env.example
 
 # Archivos temporales
 *.zip

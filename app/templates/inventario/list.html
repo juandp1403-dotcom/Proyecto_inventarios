@@ -1,56 +1,161 @@
 {% extends 'base.html' %}
 
-{% block title %}Inventario{% endblock %}
+{% block title %}
+Inventario
+{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h2>Inventario general</h2>
-        <p class="text-muted">Selecciona un ambiente para ver su inventario.</p>
-        <div class="mb-3">
-            <input type="text" id="buscarAmbiente" class="form-control" placeholder="Buscar ambiente por nombre..." onkeyup="filtrarAmbientes()">
+
+<div class="container py-5 d-flex justify-content-center">
+
+    <div class="inventario-card w-100">
+
+       
+        <div class="inventario-header">
+
+            <h2>
+                Inventario general
+            </h2>
+
+            <p>
+                Selecciona un ambiente para ver su inventario.
+            </p>
+
         </div>
-        {% if current_role in ['admin', 'auditor'] %}
-        <a href="/ambientes/crear" class="btn btn-success">Añadir Ambiente</a>
-        {% endif %}
-    </div>
-</div>
-<div class="row g-3" id="listaAmbientes">
-    {% for ambiente in ambientes %}
-        <div class="col-md-4 ambiente-card">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">{{ ambiente.nombre }}</h5>
-                    <p class="card-text">{{ ambiente.tipo }}</p>
-                    <a href="/inventario/ambiente/{{ ambiente.id }}" class="btn btn-outline-primary">Ver inventario</a>
-                </div>
+
+       
+        <div class="inventario-body">
+
+         
+            <div class="mb-4">
+
+                <input
+                    type="text"
+                    id="buscarAmbiente"
+                    class="form-control"
+                    placeholder="Buscar ambiente por nombre..."
+                    onkeyup="filtrarAmbientes()">
+
             </div>
+
+            
+            {% if current_role in ['admin', 'auditor'] %}
+
+            <div class="text-center mb-4">
+
+                <a
+                    href="/ambientes/crear"
+                    class="btn btn-success">
+
+                    Añadir Ambiente
+
+                </a>
+
+            </div>
+
+            {% endif %}
+
+           
+            <div class="row g-4 justify-content-center" id="listaAmbientes">
+
+                {% for ambiente in ambientes %}
+
+                <div class="col-md-4 ambiente-card">
+
+                    <div class="card h-100 shadow-sm ambiente-item-card">
+
+                        <div class="card-body text-center">
+
+                            <h5 class="card-title">
+
+                                {{ ambiente.nombre }}
+
+                            </h5>
+
+                            <p class="card-text text-muted">
+
+                                {{ ambiente.tipo }}
+
+                            </p>
+
+                            <a
+                                href="/inventario/ambiente/{{ ambiente.id }}"
+                                class="btn btn-outline-primary">
+
+                                Ver inventario
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                {% else %}
+
+                <div class="col-12">
+
+                    <div class="alert alert-info text-center">
+
+                        Aún no hay ambientes con inventario disponible.
+
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
         </div>
-    {% else %}
-        <div class="col-12">
-            <div class="alert alert-info">Aún no hay ambientes con inventario disponible.</div>
-        </div>
-    {% endfor %}
+
+    </div>
+
 </div>
 
 <script>
+
 function filtrarAmbientes() {
-    const input = document.getElementById('buscarAmbiente');
-    const filter = input.value.toLowerCase();
-    const container = document.getElementById('listaAmbientes');
-    const cards = container.getElementsByClassName('ambiente-card');
-    
+
+    const input =
+        document.getElementById('buscarAmbiente');
+
+    const filter =
+        input.value.toLowerCase();
+
+    const container =
+        document.getElementById('listaAmbientes');
+
+    const cards =
+        container.getElementsByClassName('ambiente-card');
+
     for (let i = 0; i < cards.length; i++) {
-        const title = cards[i].querySelector('.card-title');
+
+        const title =
+            cards[i].querySelector('.card-title');
+
         if (title) {
-            const txt = title.textContent || title.innerText;
+
+            const txt =
+                title.textContent || title.innerText;
+
             if (txt.toLowerCase().indexOf(filter) > -1) {
+
                 cards[i].style.display = "";
+
             } else {
+
                 cards[i].style.display = "none";
+
             }
+
         }
+
     }
+
 }
+
 </script>
+
 {% endblock %}
