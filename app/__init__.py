@@ -6,6 +6,7 @@ db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
+    app.instance_path = app.root_path
 
     app.config.from_object('config.Config')
     

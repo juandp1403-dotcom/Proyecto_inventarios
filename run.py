@@ -7,6 +7,7 @@ os.makedirs('instance', exist_ok=True)
 app = create_app()
 
 if __name__ == '__main__':
+    print(app.config['SQLALCHEMY_DATABASE_URI'])
     init_database(app)
     debug_mode = os.getenv('FLASK_ENV') == 'true'
     app.run(host='0.0.0.0', port=5000, debug="true")
