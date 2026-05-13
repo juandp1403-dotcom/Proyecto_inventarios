@@ -8,7 +8,7 @@
         <div class="card shadow-sm">
             <div class="card-body text-center">
                 <h2 class="card-title mb-4 fw-bold">Crear Reporte</h2>
-                <form method="post">
+                <form method="post" action="{{ url_for('reporte.crear_reporte') }}">
                     <div class="mb-3">
                         <label for="tipo" class="form-label">Tipo de Reporte</label>
                         <select class="form-select" id="tipo" name="tipo" required>

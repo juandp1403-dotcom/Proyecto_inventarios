@@ -9,7 +9,7 @@
             <div class="card-body text-center">
                 <h2 class="card-title mb-4 fw-bold">Solicitudes</h2>
                 <p class="text-muted mb-4">Consulta las solicitudes de inventario.</p>
-                {% if current_role in ['admin', 'auditor', 'revisor', 'instructor'] %}
+                {% if current_role in ['aprendiz', 'instructor', 'auditor', 'revisor'] %}
                 <a href="/solicitudes/crear" class="btn btn-primary btn-lg">Nueva solicitud</a>
                 {% endif %}
             </div>

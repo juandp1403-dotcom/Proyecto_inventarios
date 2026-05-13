@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, render_template, session
+from flask import Blueprint, jsonify, request, render_template, session, redirect, url_for
 from app import db
 from app.routes.auth_helpers import role_required, get_user_role
 from app.routes.auth_decorators import login_required
@@ -12,11 +12,11 @@ solicitud_bp = Blueprint('solicitud', __name__, url_prefix='/solicitudes')
 
 @solicitud_bp.route('/', methods=['GET'])
 @login_required
-@role_required('admin', 'auditor', 'revisor', 'instructor')
+@role_required('admin', 'auditor', 'revisor', 'instructor', 'aprendiz')
 def listar_solicitudes():
     from app.routes.auth_helpers import get_user_role
     role = get_user_role()
-    if role == 'instructor':
+    if role in ['instructor', 'aprendiz']:
         solicitudes = Solicitud.query.join(Ambiente).filter(Solicitud.id_usuario == session.get('user_id')).all()
     else:
         solicitudes = Solicitud.query.join(Ambiente).all()
@@ -25,7 +25,7 @@ def listar_solicitudes():
 
 @solicitud_bp.route('/crear', methods=['GET', 'POST'])
 @login_required
-@role_required('admin', 'auditor', 'revisor', 'instructor')
+@role_required('admin', 'auditor', 'revisor', 'instructor', 'aprendiz')
 def crear_solicitud():
     from app.routes.auth_helpers import get_user_role
     ambientes = Ambiente.query.all()
@@ -43,7 +43,9 @@ def crear_solicitud():
     db.session.add(solicitud)
     db.session.commit()
     
-    return jsonify({'message': 'Solicitud creada correctamente', 'id': solicitud.id}), 201
+    if request.is_json:
+        return jsonify({'message': 'Solicitud creada correctamente', 'id': solicitud.id}), 201
+    return redirect(url_for('solicitud.listar_solicitudes'))
 
 
 @solicitud_bp.route('/', methods=['POST'])

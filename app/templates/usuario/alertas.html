@@ -26,6 +26,9 @@
                             {{ alerta.titulo }}
                         </h5>
                         <p class="card-text">{{ alerta.mensaje }}</p>
+                        {% if alerta.autor %}
+                        <p class="text-muted mb-0">Autor: <strong>{{ alerta.autor }}</strong>{% if alerta.rol_autor %} ({{ alerta.rol_autor }}){% endif %}</p>
+                        {% endif %}
                     </div>
                     <div class="text-end">
                         <small class="text-muted">{{ alerta.fecha }}</small>

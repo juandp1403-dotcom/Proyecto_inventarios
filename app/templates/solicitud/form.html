@@ -8,7 +8,7 @@
         <div class="card shadow-sm">
             <div class="card-body text-center">
                 <h2 class="card-title mb-4 fw-bold">Crear Solicitud</h2>
-                <form method="post">
+                <form method="post" action="{{ url_for('solicitud.crear_solicitud') }}">
                     <div class="mb-3">
                         <label for="justificacion" class="form-label">Justificación de la Solicitud</label>
                         <textarea class="form-control" id="justificacion" name="justificacion" rows="4" 
@@ -31,7 +31,7 @@
                 </form>
                 
                 <div class="mt-4">
-                    <a href="/solicitudes/" class="btn btn-outline-secondary">Volver a la lista</a>
+                    <a href="{{ url_for('solicitud.listar_solicitudes') }}" class="btn btn-outline-secondary">Volver a la lista</a>
                 </div>
             </div>
         </div>

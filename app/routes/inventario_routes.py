@@ -13,6 +13,7 @@ inventario_bp = Blueprint('inventario', __name__, url_prefix='/inventario')
 
 @inventario_bp.route('/', methods=['GET'])
 @login_required
+@role_required('admin', 'auditor', 'revisor', 'instructor')
 def listar_inventarios():
     ambientes = Ambiente.query.all()
     return render_template('inventario/list.html', ambientes=ambientes, current_role=get_user_role())
@@ -20,6 +21,7 @@ def listar_inventarios():
 
 @inventario_bp.route('/ambiente/<int:ambiente_id>', methods=['GET'])
 @login_required
+@role_required('admin', 'auditor', 'revisor', 'instructor')
 def inventario_por_ambiente(ambiente_id):
     ambiente = Ambiente.query.get_or_404(ambiente_id)
     inventario_items = InventarioAmbiente.query.filter_by(id_ambiente=ambiente_id).all()
@@ -101,7 +103,7 @@ def editar_inventario_amiente(ambiente_id):
 
 @inventario_bp.route('/articulo/<int:articulo_id>', methods=['GET'])
 @login_required
-@role_required('admin', 'aprendiz', 'instructor', 'auditor', 'revisor')
+@role_required('admin', 'instructor', 'auditor', 'revisor')
 def detalle_articulo(articulo_id):
     return jsonify({'message': f'Detalle del artículo {articulo_id}'})
 
@@ -124,6 +126,7 @@ def movimiento_inventario():
 
 @inventario_bp.route('/checklist_general/<int:ambiente_id>', methods=['POST'])
 @login_required
+@role_required('admin', 'auditor', 'revisor', 'instructor')
 def checklist_general(ambiente_id):
     from app.models.movimiento import Movimiento
     
@@ -222,9 +225,16 @@ def crear_reporte(inventario_id):
         id_usuario=session.get('user_id')
     )
     
+    from app.models.usuario import Usuario
+    from app.models.rol import Rol
+    usuario = Usuario.query.get(session.get('user_id'))
+    rol = Rol.query.get(usuario.id_rol) if usuario else None
+    nombre_autor = usuario.nombre if usuario else 'Desconocido'
+    rol_autor = rol.nombre.title() if rol else 'Desconocido'
+
     Alerta.crear_alerta(
         titulo='Nuevo reporte',
-        mensaje=f'Reporte #{reporte.id}: {reporte.filtros[:50]}',
+        mensaje=f'Reporte #{reporte.id}: {reporte.filtros[:50]} por {nombre_autor} ({rol_autor})',
         tipo='reporte',
         id_referencia=reporte.id
     )

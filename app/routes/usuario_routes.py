@@ -115,7 +115,7 @@ def crear_usuario():
     if Usuario.query.filter_by(nombre=nombre).first():
         return jsonify({'error': 'Ya existe un usuario con ese nombre'}), 409
 
-    aprobado = True if current_role == 'admin' else False
+    aprobado = True if current_role == 'admin' or rol_nombre == 'aprendiz' else False
     nuevo_usuario = Usuario(
         nombre=nombre,
         email=email,
@@ -176,7 +176,8 @@ def ver_perfil():
 
 
 @usuario_bp.route('/inventario', methods=['GET'])
-@role_required('aprendiz', 'instructor', 'auditor', 'revisor')
+@login_required
+@role_required('instructor', 'auditor', 'revisor')
 def ver_inventario():
     return jsonify({'message': 'Acceso a inventario autorizado', 'rol': get_user_role()})
 
@@ -188,7 +189,8 @@ def cambiar_inventario():
 
 
 @usuario_bp.route('/reportes', methods=['GET', 'POST'])
-@role_required('instructor', 'auditor', 'revisor')
+@login_required
+@role_required('aprendiz', 'instructor', 'auditor', 'revisor')
 def manejar_reportes():
     if request.method == 'GET':
         return jsonify({'message': 'Listado de reportes disponible'})
@@ -196,7 +198,8 @@ def manejar_reportes():
 
 
 @usuario_bp.route('/solicitudes', methods=['GET', 'POST'])
-@role_required('revisor')
+@login_required
+@role_required('aprendiz', 'revisor')
 def manejar_solicitudes():
     if request.method == 'GET':
         return jsonify({'message': 'Listado de solicitudes'})
@@ -204,6 +207,7 @@ def manejar_solicitudes():
 
 
 @usuario_bp.route('/devoluciones', methods=['GET', 'POST'])
+@login_required
 @role_required('revisor')
 def manejar_devoluciones():
     if request.method == 'GET':
@@ -213,12 +217,39 @@ def manejar_devoluciones():
 
 @usuario_bp.route('/alertas', methods=['GET'])
 @login_required
-@role_required('admin', 'auditor', 'revisor', 'instructor', 'aprendiz')
+@role_required('admin', 'auditor', 'revisor', 'instructor')
 def ver_alertas():
     from app.models.alerta import Alerta
+    from app.models.reporte import Reporte
+    from app.models.usuario import Usuario
+    from app.models.rol import Rol
+
     user_id = session.get('user_id')
     alertas = Alerta.query.filter_by(id_usuario_destino=user_id).order_by(Alerta.fecha_creacion.desc()).all()
-    alertas_dict = [{'titulo': a.titulo, 'mensaje': a.mensaje, 'fecha': a.fecha_creacion, 'tipo': a.tipo, 'leida': a.leida} for a in alertas]
+    alertas_dict = []
+
+    for a in alertas:
+        alerta_data = {
+            'titulo': a.titulo,
+            'mensaje': a.mensaje,
+            'fecha': a.fecha_creacion,
+            'tipo': a.tipo,
+            'leida': a.leida,
+            'autor': None,
+            'rol_autor': None
+        }
+
+        if a.tipo == 'reporte' and a.id_referencia:
+            reporte = Reporte.query.get(a.id_referencia)
+            if reporte:
+                autor = Usuario.query.get(reporte.id_usuario)
+                if autor:
+                    alerta_data['autor'] = autor.nombre
+                    rol = Rol.query.get(autor.id_rol)
+                    alerta_data['rol_autor'] = rol.nombre.title() if rol else None
+
+        alertas_dict.append(alerta_data)
+
     return render_template('usuario/alertas.html', alerts=alertas_dict, current_role=get_user_role())
 
 
