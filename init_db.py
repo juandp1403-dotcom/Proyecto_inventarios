@@ -24,16 +24,14 @@ def init_database(app=None):
         
         rol_admin = Rol.query.filter_by(nombre='admin').first()
         
-        admin = Usuario.query.filter_by(email='admin@gmail.com').first()
+        admin_email = os.getenv('ADMIN_EMAIL', 'admin@gmail.com')
+        admin = Usuario.query.filter_by(email=admin_email).first()
         if not admin:
-            admin_password = os.getenv('ADMIN_PASSWORD', '123456')
-            if 'ADMIN_PASSWORD' not in os.environ:
-                print("[!] Variable ADMIN_PASSWORD no definida. Se usará la contraseña por defecto: 123456")
-                print("[!] Cambie ADMIN_PASSWORD si desea un valor distinto para futuras ejecuciones.")
+            admin_password = os.environ['ADMIN_PASSWORD']
 
             admin = Usuario(
                 nombre='admin',
-                email='admin@gmail.com',
+                email=admin_email,
                 password=generate_password_hash(admin_password),
                 id_rol=rol_admin.id,
                 aprobado=True,
@@ -41,7 +39,7 @@ def init_database(app=None):
             )
             db.session.add(admin)
             db.session.commit()
-            print("[+] Admin creado exitosamente: admin@gmail.com")
+            print(f"[+] Admin creado exitosamente: {admin_email}")
         else:
             if admin.password and not admin.password.startswith(('pbkdf2:sha256:', 'argon2:', 'scrypt:', 'bcrypt:')):
                 admin.password = generate_password_hash(admin.password)

@@ -1,3 +1,4 @@
+import os
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
@@ -260,7 +261,8 @@ def listar_usuarios():
     from app.routes.auth_helpers import get_user_role
     usuarios = Usuario.query.all()
     roles = Rol.query.all()
-    return render_template('usuario/listar.html', usuarios=usuarios, roles=roles, current_role=get_user_role())
+    admin_email = os.getenv('ADMIN_EMAIL', 'admin@gmail.com')
+    return render_template('usuario/listar.html', usuarios=usuarios, roles=roles, current_role=get_user_role(), admin_email=admin_email)
 
 
 @usuario_bp.route('/editar/<int:id>', methods=['GET', 'POST'])
@@ -298,7 +300,8 @@ def eliminar_usuario(id):
     usuario = Usuario.query.get_or_404(id)
     
     # No permitir eliminar al admin
-    if usuario.email == 'admin@gmail.com' or usuario.nombre == 'admin':
+    admin_email = os.getenv('ADMIN_EMAIL', 'admin@gmail.com')
+    if usuario.email == admin_email or usuario.nombre == 'admin':
         return jsonify({'error': 'No se puede eliminar el usuario admin'}), 403
     
     db.session.delete(usuario)
