@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, render_template, request, session
+from flask import Blueprint, jsonify, redirect, url_for, render_template, request, session
 from app import db
 from app.models.ambiente import Ambiente
 from app.models.articulo import Articulo
@@ -13,16 +13,14 @@ ambiente_bp = Blueprint('ambiente', __name__, url_prefix='/ambientes')
 @login_required
 @role_required('admin', 'auditor', 'revisor', 'instructor', 'aprendiz')
 def listar_ambientes():
-    ambientes = Ambiente.query.all()
-    return render_template('ambiente/list.html', ambientes=ambientes, current_role=get_user_role())
+    return redirect(url_for('inventario.listar_inventarios'))
 
 
 @ambiente_bp.route('/<int:ambiente_id>', methods=['GET'])
 @login_required
 @role_required('admin', 'auditor', 'revisor', 'instructor', 'aprendiz')
 def ver_ambiente(ambiente_id):
-    ambiente = Ambiente.query.get_or_404(ambiente_id)
-    return render_template('ambiente/detail.html', ambiente=ambiente, current_role=get_user_role())
+    return redirect(url_for('inventario.inventario_por_ambiente', ambiente_id=ambiente_id))
 
 
 @ambiente_bp.route('/<int:ambiente_id>/inventario', methods=['GET'])
@@ -62,7 +60,7 @@ def crear_ambiente():
         if not articulo:
             articulo = Articulo(
                 nombre=nombre_articulo,
-                codigo=f'ART-{articulo.id if articulo else 0}',
+                codigo='',
                 descripcion='',
                 id_categoria=1,
                 cantidad=cantidad,
@@ -70,6 +68,8 @@ def crear_ambiente():
                 estado='disponible'
             )
             db.session.add(articulo)
+            db.session.flush()
+            articulo.codigo = 'ART-' + str(articulo.id)
             db.session.commit()
         
         db.session.add(InventarioAmbiente(

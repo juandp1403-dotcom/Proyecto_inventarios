@@ -12,6 +12,7 @@ def create_app():
     from datetime import timedelta
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SESSION_COOKIE_SECURE'] = True
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=8)
 
     db.init_app(app)

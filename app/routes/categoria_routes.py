@@ -1,23 +1,27 @@
 from flask import Blueprint, jsonify, request
 from app.routes.auth_helpers import role_required
+from app.routes.auth_decorators import login_required
 from app.models.categoria import Categoria
 
 categoria_bp = Blueprint('categoria', __name__, url_prefix='/categorias')
 
 
 @categoria_bp.route('/', methods=['GET'])
+@login_required
 @role_required('aprendiz', 'instructor', 'auditor', 'revisor')
 def listar_categorias():
     return jsonify({'message': 'Listado de categorías de artículos'})
 
 
 @categoria_bp.route('/<int:categoria_id>', methods=['GET'])
+@login_required
 @role_required('aprendiz', 'instructor', 'auditor', 'revisor')
 def ver_categoria(categoria_id):
     return jsonify({'message': f'Detalle de categoría {categoria_id}'})
 
 
 @categoria_bp.route('/', methods=['POST'])
+@login_required
 @role_required('auditor')
 def crear_categoria():
     data = request.get_json() or {}
@@ -25,6 +29,7 @@ def crear_categoria():
 
 
 @categoria_bp.route('/<int:categoria_id>', methods=['PUT'])
+@login_required
 @role_required('auditor')
 def editar_categoria(categoria_id):
     data = request.get_json() or {}

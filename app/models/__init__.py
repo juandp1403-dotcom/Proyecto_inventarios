@@ -6,7 +6,6 @@ from app.models.asignacion import Asignacion
 from app.models.caracteristica import Caracteristica
 from app.models.categoria import Categoria
 from app.models.historial_revision import HistorialRevision
-from app.models.inventario import Inventario
 from app.models.inventario_ambiente import InventarioAmbiente
 from app.models.login_auditoria import Login_auditoria
 from app.models.movimiento import Movimiento

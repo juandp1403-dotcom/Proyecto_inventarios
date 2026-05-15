@@ -72,7 +72,7 @@ def editar_inventario_amiente(ambiente_id):
         if not articulo:
             articulo = Articulo(
                 nombre=nombre_articulo,
-                codigo='ART-' + str(articulo.id if hasattr(articulo, 'id') else 0),
+                codigo='',
                 descripcion='',
                 id_categoria=1,
                 cantidad=cantidad,
@@ -80,6 +80,8 @@ def editar_inventario_amiente(ambiente_id):
                 estado='disponible'
             )
             db.session.add(articulo)
+            db.session.flush()
+            articulo.codigo = 'ART-' + str(articulo.id)
             db.session.commit()
         
         db.session.add(InventarioAmbiente(
@@ -249,9 +251,9 @@ def actualizar_inventario(inventario_id):
     inventario = InventarioAmbiente.query.get_or_404(inventario_id)
     data = request.get_json() or {}
     
-    if data.get('cantidad'):
+    if data.get('cantidad') is not None:
         inventario.cantidad = int(data.get('cantidad'))
-    if data.get('cantidad_minima'):
+    if data.get('cantidad_minima') is not None:
         inventario.cantidad_minima = int(data.get('cantidad_minima'))
     
     db.session.commit()

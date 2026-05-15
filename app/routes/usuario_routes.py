@@ -162,6 +162,7 @@ def login_auditor():
 
 
 @usuario_bp.route('/perfil', methods=['GET'])
+@login_required
 @role_required('aprendiz', 'instructor', 'auditor', 'revisor')
 def ver_perfil():
     user_id = session.get('user_id')
@@ -184,6 +185,7 @@ def ver_inventario():
 
 
 @usuario_bp.route('/inventario/cambios', methods=['PUT'])
+@login_required
 @role_required('auditor')
 def cambiar_inventario():
     return jsonify({'message': 'Inventario modificado por auditor'})

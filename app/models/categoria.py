@@ -6,5 +6,5 @@ class Categoria(db.Model):
     nombre = db.Column(db.String(100), unique=True, nullable=False)
     descripcion = db.Column(db.Text, nullable=True)
 
-def __repr__(self):
-    return f"Categoria('{self.nombre}')"
+    def __repr__(self):
+        return f"Categoria('{self.nombre}')"
