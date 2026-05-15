@@ -1,7 +1,7 @@
 from app import db
 
 class Ambiente(db.Model):
-    tablename = 'ambiente'
+    __tablename__ = 'ambiente'
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), unique=True, nullable=False)
     tipo = db.Column(db.String(50), nullable=False)

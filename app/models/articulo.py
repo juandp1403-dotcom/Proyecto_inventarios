@@ -2,7 +2,7 @@ from app import db
 from datetime import datetime
 
 class Articulo(db.Model):
-    tablename = 'articulo'
+    __tablename__ = 'articulo'
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
     codigo = db.Column(db.String(50), nullable=False)

@@ -2,7 +2,7 @@ from app import db
 from datetime import datetime
 
 class Asignacion(db.Model):
-    tablename = 'asignacion'
+    __tablename__ = 'asignacion'
     id = db.Column(db.Integer, primary_key=True)
     id_usuario = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     id_articulo = db.Column(db.Integer, db.ForeignKey('articulo.id'), nullable=False)

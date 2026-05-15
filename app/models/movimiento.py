@@ -2,7 +2,7 @@ from app import db
 from datetime import datetime
 
 class Movimiento(db.Model):
-    tablename = 'movimiento'
+    __tablename__ = 'movimiento'
     id = db.Column(db.Integer, primary_key=True)
     id_articulo = db.Column(db.Integer, db.ForeignKey('articulo.id'), nullable=False)
     id_usuario = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)

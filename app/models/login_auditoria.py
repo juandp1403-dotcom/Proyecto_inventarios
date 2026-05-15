@@ -2,7 +2,7 @@ from app import db
 from datetime import datetime
 
 class Login_auditoria(db.Model):
-    tablename = 'login_auditoria'
+    __tablename__ = 'login_auditoria'
     id = db.Column(db.Integer, primary_key=True)
     id_usuario = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     email_usuario = db.Column(db.String(120), nullable=False)

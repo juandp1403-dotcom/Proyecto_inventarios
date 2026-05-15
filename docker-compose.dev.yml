@@ -10,18 +10,11 @@ services:
       - FLASK_APP=run.py
       - FLASK_ENV=development
       - FLASK_DEBUG=1
-      - DATABASE_URL=sqlite:///instance/site.db
-      - SECRET_KEY=clave_de_desarrollo
     volumes:
       - .:/app
-      - inventarios_data:/app/instance
     networks:
       - inventarios_network
     restart: unless-stopped
-
-volumes:
-  inventarios_data:
-    driver: local
 
 networks:
   inventarios_network:
