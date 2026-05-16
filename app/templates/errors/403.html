@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Acceso denegado{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <i class="fas fa-ban fa-5x text-danger mb-4"></i>
+            <h1 class="display-4 fw-bold">403</h1>
+            <p class="lead">No tienes permiso para acceder a esta página.</p>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg mt-3">Volver al Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

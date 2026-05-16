@@ -95,10 +95,14 @@ document.getElementById('ambienteForm').addEventListener('submit', function(e) {
     });
     
     var url = '/ambientes/crear';
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     
     fetch(url, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
         body: JSON.stringify(formData)
     })
     .then(function(r) { return r.json(); })

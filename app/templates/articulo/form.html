@@ -9,6 +9,7 @@
             <div class="card-body">
                 <h2 class="card-title">{{ 'Editar artículo' if articulo else 'Nuevo artículo' }}</h2>
                 <form action="{{ action_url }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="mb-3">
                         <label for="nombre" class="form-label">Nombre</label>
                         <input type="text" id="nombre" name="nombre" class="form-control" value="{{ articulo.nombre if articulo else '' }}" required>

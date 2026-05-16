@@ -55,8 +55,12 @@
 <script>
 function aprobarSolicitud(id) {
     if (confirm('¿Aprobar esta solicitud?')) {
+        var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         fetch('/solicitudes/' + id + '/aprobar', {
-            method: 'POST'
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
         })
         .then(r => r.json())
         .then(d => {
@@ -69,8 +73,12 @@ function aprobarSolicitud(id) {
 
 function rechazarSolicitud(id) {
     if (confirm('¿Rechazar esta solicitud?')) {
+        var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         fetch('/solicitudes/' + id + '/rechazar', {
-            method: 'POST'
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
         })
         .then(r => r.json())
         .then(d => {

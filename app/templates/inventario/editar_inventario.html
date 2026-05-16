@@ -84,9 +84,14 @@ function guardarInventario() {
         }
     });
     
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
     fetch('/inventario/editar/{{ ambiente.id }}', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
         body: JSON.stringify({items: items})
     })
     .then(function(r) { return r.json(); })

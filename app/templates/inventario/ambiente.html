@@ -162,10 +162,14 @@ function ejecutarChecklist() {
     
     // Get ambiente_id from the page
     var ambienteId = {{ ambiente.id|tojson }};
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     
     fetch('/inventario/checklist_general/' + ambienteId, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
         body: JSON.stringify({observaciones: observaciones})
     })
     .then(function() { 
@@ -192,6 +196,7 @@ function cerrarModalInventario() {
 function guardarCambioInventario() {
     var nuevaCantidad = document.getElementById('nuevaCantidad').value;
     var nuevaCantidadMinima = document.getElementById('cantidadMinima').value;
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     
     if (!nuevaCantidad || isNaN(nuevaCantidad)) {
         nuevaCantidad = document.getElementById('nuevaCantidad').dataset.cantidadActual;
@@ -199,7 +204,10 @@ function guardarCambioInventario() {
     
     fetch('/inventario/actualizar/' + inventarioActual, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
         body: JSON.stringify({
             cantidad: parseInt(nuevaCantidad) || 0,
             cantidad_minima: parseInt(nuevaCantidadMinima) || 0
@@ -243,9 +251,14 @@ function enviarAccion() {
     if (!desc) return alert('Escribe algo');
     
     var url = '/inventario/' + accionActual + '/' + inventarioActual;
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
     fetch(url, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
         body: JSON.stringify({descripcion: desc, id_ambiente: {{ ambiente.id|tojson }}})
     })
     .then(function(r) { return r.json(); })

@@ -9,6 +9,7 @@
             <div class="card-body text-center">
                 <h2 class="card-title mb-4">Editar usuario</h2>
                 <form action="/usuario/editar/{{ usuario.id }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="mb-3">
                         <label for="nombre" class="form-label">Nombre</label>
                         <input type="text" id="nombre" name="nombre" class="form-control" value="{{ usuario.nombre }}" required>

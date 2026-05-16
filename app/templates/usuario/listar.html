@@ -55,7 +55,8 @@
                                     <a href="/usuario/editar/{{ usuario.id }}" class="btn btn-sm btn-primary">Editar</a>
                                     {% if usuario.email != admin_email and usuario.nombre != 'admin' %}
                                     <form action="/usuario/eliminar/{{ usuario.id }}" method="post" style="display:inline;">
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar este usuario?');">Eliminar</button>
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar este usuario?')">Eliminar</button>
                                     </form>
                                     {% endif %}
                                 </td>

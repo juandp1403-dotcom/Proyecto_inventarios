@@ -12,6 +12,7 @@
                 <h2 class="card-title mb-4">Iniciar sesión</h2>
                 <p class="text-muted mb-4">Accede con tu correo y contraseña.</p>
                 <form action="/usuario/login" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="mb-3">
                         <label for="loginEmail" class="form-label">Correo electrónico</label>
                         <input type="email" id="loginEmail" name="email" class="form-control" required>

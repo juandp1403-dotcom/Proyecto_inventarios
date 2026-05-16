@@ -1,7 +1,9 @@
-from flask import Flask, redirect, url_for, render_template, session
+from flask import Flask, redirect, url_for, render_template, session, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect
 
 db = SQLAlchemy()
+csrf = CSRFProtect()
 
 def create_app():
     app = Flask(__name__)
@@ -16,6 +18,32 @@ def create_app():
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=8)
 
     db.init_app(app)
+    csrf.init_app(app)
+
+    # Global Error Handlers
+    @app.errorhandler(404)
+    def page_not_found(e):
+        if request.path.startswith('/api/'):
+            return jsonify({'error': 'Not found'}), 404
+        return render_template('errors/404.html'), 404
+
+    @app.errorhandler(500)
+    def internal_server_error(e):
+        if request.path.startswith('/api/'):
+            return jsonify({'error': 'Internal server error'}), 500
+        return render_template('errors/500.html'), 500
+
+    @app.errorhandler(403)
+    def forbidden(e):
+        if request.path.startswith('/api/'):
+            return jsonify({'error': 'Forbidden'}), 403
+        return render_template('errors/403.html'), 403
+
+    @app.errorhandler(405)
+    def method_not_allowed(e):
+        if request.path.startswith('/api/'):
+            return jsonify({'error': 'Method not allowed'}), 405
+        return render_template('errors/403.html'), 405 # Reuse 403 or create another
 
     from app.models import (
         alerta,
