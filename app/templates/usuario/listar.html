@@ -295,10 +295,11 @@ document.getElementById('searchInput').addEventListener('keyup', function() {
     }
 });
 
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('modal')) {
-        e.target.classList.remove('show');
-    }
+document.getElementById('modalCrear').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('show');
+});
+document.getElementById('modalEditar').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('show');
 });
 </script>
 {% endblock %}
