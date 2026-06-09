@@ -75,7 +75,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="crearForm">
+                <form id="formCrearUsuario">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="mb-3">
                         <label for="crearNombre" class="form-label">Nombre</label>
@@ -116,7 +116,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" onclick="crearUsuario()">Crear usuario</button>
+                <button type="button" id="btnCrearUsuario" class="btn btn-primary">Crear usuario</button>
             </div>
         </div>
     </div>
@@ -185,29 +185,32 @@ document.getElementById('searchInput').addEventListener('keyup', function() {
     }
 });
 
-function crearUsuario() {
-    var form = document.getElementById('crearForm');
-    var formData = new FormData(form);
+document.getElementById('btnCrearUsuario').addEventListener('click', function() {
+    var form = document.getElementById('formCrearUsuario');
     var password = document.getElementById('crearPassword').value.trim();
     var passwordConfirm = document.getElementById('crearPasswordConfirm').value.trim();
     if (password !== passwordConfirm) {
         alert('Las contraseñas no coinciden.');
         return;
     }
+    var formData = new FormData(form);
     fetch('/usuario/crear', {
         method: 'POST',
         body: formData
     })
-    .then(function(r) {
-        if (r.redirected) { window.location.reload(); return; }
-        return r.json();
+    .then(function(res) {
+        if (res.redirected || res.ok) {
+            return res.json().catch(function() { return {}; });
+        }
+        return res.json().then(function(d) { throw new Error(d.error || 'Error al crear usuario'); });
     })
-    .then(function(d) {
-        if (d && d.error) { alert(d.error); return; }
+    .then(function() {
         window.location.reload();
     })
-    .catch(function() { alert('Error al crear usuario'); });
-}
+    .catch(function(err) {
+        alert(err.message);
+    });
+});
 
 function abrirEditar(btn) {
     var row = btn.closest('tr');
