@@ -150,7 +150,7 @@ var inventarioActual = 0;
 
 function iniciarChecklist() {
     var container = document.getElementById('checklistItemsContainer');
-    var inventarioItems = {{ inventario_items|tojson }};
+    var inventarioItems = {{ inventario_items_json|tojson }};
     var articulos = {{ articulos|tojson }};
     var html = '<table class="table table-striped table-hover"><thead class="table-success"><tr><th>Revisado</th><th>Artículo</th><th>Actual / Mín</th><th>Estado</th><th>Observaciones</th></tr></thead><tbody>';
     for (var i = 0; i < inventarioItems.length; i++) {

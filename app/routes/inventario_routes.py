@@ -26,9 +26,16 @@ def inventario_por_ambiente(ambiente_id):
     ambiente = Ambiente.query.get_or_404(ambiente_id)
     inventario_items = InventarioAmbiente.query.filter_by(id_ambiente=ambiente_id).all()
     articulos = {a.id: a.nombre for a in Articulo.query.all()}
+    inventario_items_json = [{
+        'id': item.id,
+        'id_articulo': item.id_articulo,
+        'cantidad': item.cantidad,
+        'cantidad_minima': item.cantidad_minima
+    } for item in inventario_items]
     return render_template('inventario/ambiente.html', 
                         ambiente=ambiente, 
                         inventario_items=inventario_items,
+                        inventario_items_json=inventario_items_json,
                         articulos=articulos,
                         current_role=get_user_role())
 
