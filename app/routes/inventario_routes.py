@@ -272,7 +272,20 @@ def actualizar_inventario(inventario_id):
         id_referencia=inventario_id,
         id_usuario=session.get('user_id')
     )
-    
+
+    if inventario.cantidad < inventario.cantidad_minima:
+        try:
+            articulo = Articulo.query.get(inventario.id_articulo)
+            nombre_articulo = articulo.nombre if articulo else f'Artículo #{inventario.id_articulo}'
+            Alerta.crear_alerta(
+                titulo='Stock bajo en inventario',
+                mensaje=f'{nombre_articulo}: {inventario.cantidad} unidades (mínimo {inventario.cantidad_minima})',
+                tipo='inventario',
+                id_referencia=inventario_id
+            )
+        except Exception as e:
+            print(f'Error al crear alerta de stock bajo: {e}')
+
     return jsonify({'message': 'Inventario actualizado correctamente'})
 
 
@@ -308,6 +321,28 @@ def checklist_item(ambiente_id):
         id_referencia=ambiente_id,
         id_usuario=session.get('user_id')
     )
+
+    novedades = [it for it in items if not it.get('revisado') or it.get('observacion', '').strip()]
+    if novedades:
+        try:
+            articulos_dict = {a.id: a.nombre for a in Articulo.query.all()}
+            partes = []
+            for n in novedades:
+                nombre = articulos_dict.get(n.get('id_articulo'), f'Artículo #{n.get("id_articulo")}')
+                obs = n.get('observacion', '').strip()
+                if obs:
+                    partes.append(f'{nombre}: {obs}')
+                else:
+                    partes.append(f'{nombre}: (sin observación)')
+            mensaje = ' | '.join(partes)
+            Alerta.crear_alerta(
+                titulo='Novedad en checklist',
+                mensaje=mensaje,
+                tipo='inventario',
+                id_referencia=ambiente_id
+            )
+        except Exception as e:
+            print(f'Error al crear alerta de checklist: {e}')
 
     return jsonify({'message': f'Checklist completado: {revisados} de {total} artículos revisados, {con_novedad} con novedad'})
 
