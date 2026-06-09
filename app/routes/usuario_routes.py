@@ -60,7 +60,7 @@ def logout_usuario():
 @usuario_bp.route('/crear', methods=['GET', 'POST'])
 def crear_usuario():
     if request.method == 'GET':
-        return render_template('usuario/crear.html', current_role=get_user_role())
+        return redirect(url_for('usuario.listar_usuarios'))
     
     # POST method existing code
     data = request.get_json(silent=True) or request.form or {}
@@ -258,23 +258,32 @@ def ver_alertas():
 
 @usuario_bp.route('/listar', methods=['GET'])
 @login_required
-@role_required('admin')
+@role_required('admin', 'auditor')
 def listar_usuarios():
     from app.routes.auth_helpers import get_user_role
     usuarios = Usuario.query.all()
     roles = Rol.query.all()
     admin_email = os.getenv('ADMIN_EMAIL', 'admin@gmail.com')
-    return render_template('usuario/listar.html', usuarios=usuarios, roles=roles, current_role=get_user_role(), admin_email=admin_email)
+    user_roles = {}
+    for u in usuarios:
+        rol = next((r for r in roles if r.id == u.id_rol), None)
+        user_roles[u.id] = rol.nombre if rol else ''
+    return render_template('usuario/listar.html', usuarios=usuarios, roles=roles, user_roles=user_roles, current_role=get_user_role(), admin_email=admin_email)
 
 
 @usuario_bp.route('/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
-@role_required('admin')
+@role_required('admin', 'auditor')
 def editar_usuario(id):
     from app.routes.auth_helpers import get_user_role
     usuario = Usuario.query.get_or_404(id)
     roles = Rol.query.all()
-    
+
+    if get_user_role() == 'auditor':
+        target_rol = next((r for r in roles if r.id == usuario.id_rol), None)
+        if target_rol and target_rol.nombre == 'admin':
+            return jsonify({'error': 'No tienes permiso para modificar este usuario'}), 403
+
     if request.method == 'POST':
         data = request.form
         usuario.nombre = data.get('nombre', usuario.nombre)
@@ -291,14 +300,16 @@ def editar_usuario(id):
         db.session.commit()
         return redirect(url_for('usuario.listar_usuarios'))
     
-    rol_actual = Rol.query.get(usuario.id_rol)
-    return render_template('usuario/editar.html', usuario=usuario, roles=roles, rol_actual=rol_actual.nombre if rol_actual else None, current_role=get_user_role())
+    return redirect(url_for('usuario.listar_usuarios'))
 
 
 @usuario_bp.route('/eliminar/<int:id>', methods=['POST'])
 @login_required
-@role_required('admin')
+@role_required('admin', 'auditor')
 def eliminar_usuario(id):
+    from app.routes.auth_helpers import get_user_role
+    if get_user_role() == 'auditor':
+        return jsonify({'error': 'No tienes permiso para modificar este usuario'}), 403
     usuario = Usuario.query.get_or_404(id)
     
     # No permitir eliminar al admin
