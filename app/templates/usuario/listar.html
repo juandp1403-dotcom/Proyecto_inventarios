@@ -61,7 +61,7 @@
                         <tbody>
                             {% for usuario in usuarios %}
                             {% set rol_nombre = user_roles.get(usuario.id, '') %}
-                            <tr>
+                            <tr data-user='{{ {"id": usuario.id, "nombre": usuario.nombre, "email": usuario.email, "rol": rol_nombre, "activo": usuario.activo, "aprobado": usuario.aprobado}|tojson }}'>
                                 <td>{{ usuario.id }}</td>
                                 <td>{{ usuario.nombre }}</td>
                                 <td>{{ usuario.email }}</td>
@@ -81,9 +81,9 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <button class="btn btn-sm btn-primary" onclick="abrirEditar({{ usuario.id }}, '{{ usuario.nombre|e }}', '{{ usuario.email|e }}', '{{ rol_nombre|e }}', {{ 'true' if usuario.activo else 'false' }}, {{ 'true' if usuario.aprobado else 'false' }})">Editar</button>
+                                    <button class="btn btn-sm btn-primary btn-editar">Editar</button>
                                     {% if usuario.email != admin_email and usuario.nombre != 'admin' %}
-                                    <button class="btn btn-sm btn-danger" onclick="eliminarUsuario({{ usuario.id }})">Eliminar</button>
+                                    <button class="btn btn-sm btn-danger btn-eliminar" data-id="{{ usuario.id }}">Eliminar</button>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -227,22 +227,26 @@ document.getElementById('btnCrearUsuario').addEventListener('click', function() 
     });
 });
 
-function abrirEditar(id, nombre, email, rol, activo, aprobado) {
-    document.getElementById('editarId').value = id;
-    document.getElementById('editarNombre').value = nombre;
-    document.getElementById('editarEmail').value = email;
-    document.getElementById('editarPassword').value = '';
-    var rolSelect = document.getElementById('editarRol');
-    for (var i = 0; i < rolSelect.options.length; i++) {
-        if (rolSelect.options[i].value.toLowerCase() === rol.toLowerCase()) {
-            rolSelect.selectedIndex = i;
-            break;
+document.querySelectorAll('.btn-editar').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var row = this.closest('tr');
+        var data = JSON.parse(row.getAttribute('data-user'));
+        document.getElementById('editarId').value = data.id;
+        document.getElementById('editarNombre').value = data.nombre;
+        document.getElementById('editarEmail').value = data.email;
+        document.getElementById('editarPassword').value = '';
+        var rolSelect = document.getElementById('editarRol');
+        for (var i = 0; i < rolSelect.options.length; i++) {
+            if (rolSelect.options[i].value.toLowerCase() === data.rol.toLowerCase()) {
+                rolSelect.selectedIndex = i;
+                break;
+            }
         }
-    }
-    document.getElementById('editarActivo').checked = activo;
-    document.getElementById('editarAprobado').checked = aprobado;
-    document.getElementById('modalEditar').classList.add('show');
-}
+        document.getElementById('editarActivo').checked = data.activo;
+        document.getElementById('editarAprobado').checked = data.aprobado;
+        document.getElementById('modalEditar').classList.add('show');
+    });
+});
 
 document.getElementById('btnGuardarEditar').addEventListener('click', function() {
     var form = document.getElementById('formEditarUsuario');
@@ -266,21 +270,23 @@ document.getElementById('btnGuardarEditar').addEventListener('click', function()
     });
 });
 
-function eliminarUsuario(id) {
-    if (!confirm('¿Estás seguro de eliminar este usuario?')) return;
-    var formData = new FormData();
-    formData.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-    fetch('/usuario/eliminar/' + id, {
-        method: 'POST',
-        body: formData
-    })
-    .then(function(res) { return res.json(); })
-    .then(function(d) {
-        if (d.error) { alert(d.error); return; }
-        window.location.reload();
-    })
-    .catch(function() { alert('Error al eliminar usuario'); });
-}
+document.querySelectorAll('.btn-eliminar').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        if (!confirm('¿Estás seguro de eliminar este usuario?')) return;
+        var formData = new FormData();
+        formData.append('csrf_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+        fetch('/usuario/eliminar/' + this.dataset.id, {
+            method: 'POST',
+            body: formData
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(d) {
+            if (d.error) { alert(d.error); return; }
+            window.location.reload();
+        })
+        .catch(function() { alert('Error al eliminar usuario'); });
+    });
+});
 
 document.getElementById('searchInput').addEventListener('keyup', function() {
     var q = this.value.toLowerCase();
@@ -300,6 +306,11 @@ document.getElementById('modalCrear').addEventListener('click', function(e) {
 });
 document.getElementById('modalEditar').addEventListener('click', function(e) {
     if (e.target === this) this.classList.remove('show');
+});
+document.querySelectorAll('.modal-dialog').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
 });
 </script>
 {% endblock %}
