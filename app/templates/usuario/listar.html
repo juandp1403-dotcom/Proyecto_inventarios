@@ -1,6 +1,39 @@
 {% extends 'base.html' %}
 
-{% block title %}Gestión de Usuarios{% endblock %}
+{% block title %}Gesti&oacute;n de Usuarios{% endblock %}
+
+{% block head %}
+<style>
+.modal {
+    position: fixed !important;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 9999 !important;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+.modal.show {
+    display: flex !important;
+}
+.modal-dialog {
+    position: relative;
+    z-index: 10000;
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    width: 500px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.modal-dialog h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -10,7 +43,7 @@
                 <h2 class="card-title mb-4 text-center">Gesti&oacute;n de Usuarios</h2>
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <input type="text" id="searchInput" class="form-control w-50" placeholder="Buscar por nombre, email o rol...">
-                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearModal">+ Agregar Usuario</button>
+                    <button class="btn btn-success" onclick="abrirModalCrear()">+ Agregar Usuario</button>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-striped table-hover" id="userTable">
@@ -28,7 +61,7 @@
                         <tbody>
                             {% for usuario in usuarios %}
                             {% set rol_nombre = user_roles.get(usuario.id, '') %}
-                            <tr data-user='{{ {"id": usuario.id, "nombre": usuario.nombre, "email": usuario.email, "rol": rol_nombre, "activo": usuario.activo, "aprobado": usuario.aprobado}|tojson }}'>
+                            <tr>
                                 <td>{{ usuario.id }}</td>
                                 <td>{{ usuario.nombre }}</td>
                                 <td>{{ usuario.email }}</td>
@@ -48,7 +81,7 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <button class="btn btn-sm btn-primary" onclick="abrirEditar(this)">Editar</button>
+                                    <button class="btn btn-sm btn-primary" onclick="abrirEditar({{ usuario.id }}, '{{ usuario.nombre|e }}', '{{ usuario.email|e }}', '{{ rol_nombre|e }}', {{ 'true' if usuario.activo else 'false' }}, {{ 'true' if usuario.aprobado else 'false' }})">Editar</button>
                                     {% if usuario.email != admin_email and usuario.nombre != 'admin' %}
                                     <button class="btn btn-sm btn-danger" onclick="eliminarUsuario({{ usuario.id }})">Eliminar</button>
                                     {% endif %}
@@ -67,123 +100,105 @@
     </div>
 </div>
 
-<div class="modal fade" id="crearModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Crear Usuario</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div id="modalCrear" class="modal">
+    <div class="modal-dialog">
+        <h3>Crear Usuario</h3>
+        <form id="formCrearUsuario">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-3">
+                <label for="crearNombre" class="form-label">Nombre</label>
+                <input type="text" id="crearNombre" name="nombre" class="form-control" required>
             </div>
-            <div class="modal-body">
-                <form id="formCrearUsuario">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <div class="mb-3">
-                        <label for="crearNombre" class="form-label">Nombre</label>
-                        <input type="text" id="crearNombre" name="nombre" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="crearEmail" class="form-label">Email</label>
-                        <input type="email" id="crearEmail" name="email" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="crearPassword" class="form-label">Contrase&ntilde;a</label>
-                        <input type="password" id="crearPassword" name="password" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="crearPasswordConfirm" class="form-label">Confirmar contrase&ntilde;a</label>
-                        <input type="password" id="crearPasswordConfirm" name="password_confirm" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="crearRol" class="form-label">Rol</label>
-                        <select id="crearRol" name="rol" class="form-select" required>
-                            {% if current_role == 'admin' %}
-                            <option value="aprendiz">Aprendiz</option>
-                            <option value="instructor">Instructor</option>
-                            <option value="auditor">Auditor</option>
-                            <option value="revisor">Revisor</option>
-                            <option value="admin">Admin</option>
-                            {% elif current_role == 'auditor' %}
-                            <option value="aprendiz">Aprendiz</option>
-                            <option value="instructor">Instructor</option>
-                            <option value="auditor">Auditor</option>
-                            <option value="revisor">Revisor</option>
-                            {% else %}
-                            <option value="aprendiz">Aprendiz</option>
-                            {% endif %}
-                        </select>
-                    </div>
-                </form>
+            <div class="mb-3">
+                <label for="crearEmail" class="form-label">Email</label>
+                <input type="email" id="crearEmail" name="email" class="form-control" required>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <div class="mb-3">
+                <label for="crearPassword" class="form-label">Contrase&ntilde;a</label>
+                <input type="password" id="crearPassword" name="password" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="crearPasswordConfirm" class="form-label">Confirmar contrase&ntilde;a</label>
+                <input type="password" id="crearPasswordConfirm" name="password_confirm" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="crearRol" class="form-label">Rol</label>
+                <select id="crearRol" name="rol" class="form-select" required>
+                    {% if current_role == 'admin' %}
+                    <option value="aprendiz">Aprendiz</option>
+                    <option value="instructor">Instructor</option>
+                    <option value="auditor">Auditor</option>
+                    <option value="revisor">Revisor</option>
+                    <option value="admin">Admin</option>
+                    {% elif current_role == 'auditor' %}
+                    <option value="aprendiz">Aprendiz</option>
+                    <option value="instructor">Instructor</option>
+                    <option value="auditor">Auditor</option>
+                    <option value="revisor">Revisor</option>
+                    {% else %}
+                    <option value="aprendiz">Aprendiz</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div style="text-align:right;margin-top:1rem;">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModal('modalCrear')">Cancelar</button>
                 <button type="button" id="btnCrearUsuario" class="btn btn-primary">Crear usuario</button>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 
-<div class="modal fade" id="editarModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Editar Usuario</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div id="modalEditar" class="modal">
+    <div class="modal-dialog">
+        <h3>Editar Usuario</h3>
+        <form id="formEditarUsuario">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" id="editarId" name="id">
+            <div class="mb-3">
+                <label for="editarNombre" class="form-label">Nombre</label>
+                <input type="text" id="editarNombre" name="nombre" class="form-control" required>
             </div>
-            <div class="modal-body">
-                <form id="editarForm">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="hidden" id="editarId" name="id">
-                    <div class="mb-3">
-                        <label for="editarNombre" class="form-label">Nombre</label>
-                        <input type="text" id="editarNombre" name="nombre" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editarEmail" class="form-label">Email</label>
-                        <input type="email" id="editarEmail" name="email" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editarPassword" class="form-label">Nueva contrase&ntilde;a (dejar en blanco para mantener)</label>
-                        <input type="password" id="editarPassword" name="password" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="editarRol" class="form-label">Rol</label>
-                        <select id="editarRol" name="rol" class="form-select" required>
-                            {% for rol in roles %}
-                            <option value="{{ rol.nombre }}">{{ rol.nombre }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" id="editarActivo" name="activo" class="form-check-input">
-                        <label for="editarActivo" class="form-check-label">Usuario activo</label>
-                    </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" id="editarAprobado" name="aprobado" class="form-check-input">
-                        <label for="editarAprobado" class="form-check-label">Usuario aprobado</label>
-                    </div>
-                </form>
+            <div class="mb-3">
+                <label for="editarEmail" class="form-label">Email</label>
+                <input type="email" id="editarEmail" name="email" class="form-control" required>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" onclick="guardarEditar()">Guardar cambios</button>
+            <div class="mb-3">
+                <label for="editarPassword" class="form-label">Nueva contrase&ntilde;a (dejar en blanco para mantener)</label>
+                <input type="password" id="editarPassword" name="password" class="form-control">
             </div>
-        </div>
+            <div class="mb-3">
+                <label for="editarRol" class="form-label">Rol</label>
+                <select id="editarRol" name="rol" class="form-select" required>
+                    {% for rol in roles %}
+                    <option value="{{ rol.nombre }}">{{ rol.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" id="editarActivo" name="activo" class="form-check-input">
+                <label for="editarActivo" class="form-check-label">Usuario activo</label>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" id="editarAprobado" name="aprobado" class="form-check-input">
+                <label for="editarAprobado" class="form-check-label">Usuario aprobado</label>
+            </div>
+            <div style="text-align:right;margin-top:1rem;">
+                <button type="button" class="btn btn-secondary" onclick="cerrarModal('modalEditar')">Cancelar</button>
+                <button type="button" id="btnGuardarEditar" class="btn btn-primary">Guardar cambios</button>
+            </div>
+        </form>
     </div>
 </div>
 
 <script>
-document.getElementById('searchInput').addEventListener('keyup', function() {
-    var q = this.value.toLowerCase();
-    var rows = document.querySelectorAll('#userTable tbody tr');
-    for (var i = 0; i < rows.length; i++) {
-        var row = rows[i];
-        if (row.cells.length < 7) continue;
-        var nombre = (row.cells[1].textContent || '').toLowerCase();
-        var email = (row.cells[2].textContent || '').toLowerCase();
-        var rol = (row.cells[3].textContent || '').toLowerCase();
-        row.style.display = nombre.indexOf(q) !== -1 || email.indexOf(q) !== -1 || rol.indexOf(q) !== -1 ? '' : 'none';
-    }
-});
+function cerrarModal(id) {
+    document.getElementById(id).classList.remove('show');
+}
+
+function abrirModalCrear() {
+    document.getElementById('formCrearUsuario').reset();
+    document.getElementById('modalCrear').classList.add('show');
+}
 
 document.getElementById('btnCrearUsuario').addEventListener('click', function() {
     var form = document.getElementById('formCrearUsuario');
@@ -212,44 +227,44 @@ document.getElementById('btnCrearUsuario').addEventListener('click', function() 
     });
 });
 
-function abrirEditar(btn) {
-    var row = btn.closest('tr');
-    var data = JSON.parse(row.getAttribute('data-user'));
-    document.getElementById('editarId').value = data.id;
-    document.getElementById('editarNombre').value = data.nombre;
-    document.getElementById('editarEmail').value = data.email;
+function abrirEditar(id, nombre, email, rol, activo, aprobado) {
+    document.getElementById('editarId').value = id;
+    document.getElementById('editarNombre').value = nombre;
+    document.getElementById('editarEmail').value = email;
     document.getElementById('editarPassword').value = '';
     var rolSelect = document.getElementById('editarRol');
     for (var i = 0; i < rolSelect.options.length; i++) {
-        if (rolSelect.options[i].value.toLowerCase() === data.rol.toLowerCase()) {
+        if (rolSelect.options[i].value.toLowerCase() === rol.toLowerCase()) {
             rolSelect.selectedIndex = i;
             break;
         }
     }
-    document.getElementById('editarActivo').checked = data.activo;
-    document.getElementById('editarAprobado').checked = data.aprobado;
-    var modal = new bootstrap.Modal(document.getElementById('editarModal'));
-    modal.show();
+    document.getElementById('editarActivo').checked = activo;
+    document.getElementById('editarAprobado').checked = aprobado;
+    document.getElementById('modalEditar').classList.add('show');
 }
 
-function guardarEditar() {
-    var form = document.getElementById('editarForm');
+document.getElementById('btnGuardarEditar').addEventListener('click', function() {
+    var form = document.getElementById('formEditarUsuario');
     var formData = new FormData(form);
     var id = document.getElementById('editarId').value;
     fetch('/usuario/editar/' + id, {
         method: 'POST',
         body: formData
     })
-    .then(function(r) {
-        if (r.redirected) { window.location.reload(); return; }
-        return r.json();
+    .then(function(res) {
+        if (res.redirected || res.ok) {
+            return res.json().catch(function() { return {}; });
+        }
+        return res.json().then(function(d) { throw new Error(d.error || 'Error al guardar cambios'); });
     })
-    .then(function(d) {
-        if (d && d.error) { alert(d.error); return; }
+    .then(function() {
         window.location.reload();
     })
-    .catch(function() { alert('Error al guardar cambios'); });
-}
+    .catch(function(err) {
+        alert(err.message);
+    });
+});
 
 function eliminarUsuario(id) {
     if (!confirm('¿Estás seguro de eliminar este usuario?')) return;
@@ -259,12 +274,31 @@ function eliminarUsuario(id) {
         method: 'POST',
         body: formData
     })
-    .then(function(r) { return r.json(); })
+    .then(function(res) { return res.json(); })
     .then(function(d) {
         if (d.error) { alert(d.error); return; }
         window.location.reload();
     })
     .catch(function() { alert('Error al eliminar usuario'); });
 }
+
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    var q = this.value.toLowerCase();
+    var rows = document.querySelectorAll('#userTable tbody tr');
+    for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        if (row.cells.length < 7) continue;
+        var nombre = (row.cells[1].textContent || '').toLowerCase();
+        var email = (row.cells[2].textContent || '').toLowerCase();
+        var rol = (row.cells[3].textContent || '').toLowerCase();
+        row.style.display = nombre.indexOf(q) !== -1 || email.indexOf(q) !== -1 || rol.indexOf(q) !== -1 ? '' : 'none';
+    }
+});
+
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal')) {
+        e.target.classList.remove('show');
+    }
+});
 </script>
 {% endblock %}
