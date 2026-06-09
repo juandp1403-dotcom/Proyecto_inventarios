@@ -269,6 +269,42 @@ def actualizar_inventario(inventario_id):
     return jsonify({'message': 'Inventario actualizado correctamente'})
 
 
+@inventario_bp.route('/checklist_item/<int:ambiente_id>', methods=['POST'])
+@login_required
+@role_required('admin', 'auditor', 'revisor', 'instructor')
+def checklist_item(ambiente_id):
+    from app.models.movimiento import Movimiento
+
+    data = request.get_json() or {}
+    items = data.get('items', [])
+    total = len(items)
+    revisados = sum(1 for it in items if it.get('revisado'))
+    con_novedad = sum(1 for it in items if not it.get('revisado') or it.get('observacion', '').strip())
+
+    for it in items:
+        movimiento = Movimiento(
+            tipo='checklist',
+            id_articulo=it.get('id_articulo'),
+            id_usuario=session.get('user_id'),
+            cantidad=it.get('cantidad', 0),
+            observacion=it.get('observacion', '')
+        )
+        db.session.add(movimiento)
+
+    db.session.commit()
+
+    descripcion = f'Checklist: {revisados}/{total} revisados, {con_novedad} con novedad'
+    HistorialRevision.registrar_revision(
+        id_ambiente=ambiente_id,
+        tipo_accion='checklist',
+        descripcion=descripcion,
+        id_referencia=ambiente_id,
+        id_usuario=session.get('user_id')
+    )
+
+    return jsonify({'message': f'Checklist completado: {revisados} de {total} artículos revisados, {con_novedad} con novedad'})
+
+
 @inventario_bp.route('/eliminar_todo/<int:ambiente_id>', methods=['POST'])
 @login_required
 @role_required('admin')

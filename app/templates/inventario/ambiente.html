@@ -11,7 +11,7 @@
                 <p class="text-muted mb-4">Tipo: {{ ambiente.tipo }} | Ubicación: {{ ambiente.ubicacion }}</p>
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <div class="mb-2 mb-md-0">
-                        <button class="btn btn-success" onclick="checklistGeneral()">Checklist General</button>
+                        <button class="btn btn-success" onclick="iniciarChecklist()">Iniciar Checklist</button>
                         {% if current_role in ['admin', 'auditor', 'instructor', 'aprendiz'] %}
                         <button class="btn btn-warning" onclick="abrirSolicitudGeneral()">Nueva Solicitud</button>
                         <button class="btn btn-danger" onclick="abrirReporteGeneral()">Nuevo Reporte</button>
@@ -102,11 +102,12 @@
 </style>
 
 <div id="modalChecklist" class="modal">
-    <div class="modal-content">
-        <h3>Checklist General - Observaciones</h3>
-        <textarea id="checklistObservaciones" placeholder="Escribe observaciones aquí (opcional)..."></textarea>
-        <div>
-            <button class="modal-btn modal-btn-primary" onclick="ejecutarChecklist()">Aceptar</button>
+    <div class="modal-content" style="max-width:800px;">
+        <h3>Checklist de Inventario</h3>
+        <p class="text-muted">Revisa cada artículo. Marca como revisado si está presente y en buen estado. Opcionalmente agrega observaciones por cada uno.</p>
+        <div id="checklistItemsContainer" style="max-height:60vh;overflow-y:auto;"></div>
+        <div style="margin-top:15px;text-align:right;">
+            <button class="modal-btn modal-btn-primary" onclick="enviarChecklist()">Enviar Checklist</button>
             <button class="modal-btn modal-btn-secondary" onclick="cerrarModalChecklist()">Cancelar</button>
         </div>
     </div>
@@ -147,8 +148,26 @@
 var accionActual = '';
 var inventarioActual = 0;
 
-function checklistGeneral() {
-    document.getElementById('checklistObservaciones').value = '';
+function iniciarChecklist() {
+    var container = document.getElementById('checklistItemsContainer');
+    var inventarioItems = {{ inventario_items|tojson }};
+    var articulos = {{ articulos|tojson }};
+    var html = '<table class="table table-striped table-hover"><thead class="table-success"><tr><th>Revisado</th><th>Artículo</th><th>Actual / Mín</th><th>Estado</th><th>Observaciones</th></tr></thead><tbody>';
+    for (var i = 0; i < inventarioItems.length; i++) {
+        var item = inventarioItems[i];
+        var nombre = articulos[item.id_articulo] || 'Artículo #' + item.id_articulo;
+        var estado = item.cantidad < item.cantidad_minima ? 'Bajo' : 'OK';
+        var estadoClase = item.cantidad < item.cantidad_minima ? 'bg-warning' : 'bg-info';
+        html += '<tr>';
+        html += '<td><input type="checkbox" class="check-item" data-id="' + item.id + '" data-id-articulo="' + item.id_articulo + '" data-cantidad="' + item.cantidad + '" checked></td>';
+        html += '<td>' + nombre + '</td>';
+        html += '<td>' + item.cantidad + ' / ' + item.cantidad_minima + '</td>';
+        html += '<td><span class="badge ' + estadoClase + '">' + estado + '</span></td>';
+        html += '<td><input type="text" class="form-control form-control-sm obs-item" data-id="' + item.id + '" placeholder="Observación (opcional)"></td>';
+        html += '</tr>';
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
     document.getElementById('modalChecklist').style.display = 'block';
 }
 
@@ -156,26 +175,38 @@ function cerrarModalChecklist() {
     document.getElementById('modalChecklist').style.display = 'none';
 }
 
-function ejecutarChecklist() {
-    var observaciones = document.getElementById('checklistObservaciones').value;
-    cerrarModalChecklist();
-    
-    // Get ambiente_id from the page
+function enviarChecklist() {
+    var items = [];
+    var checkboxes = document.querySelectorAll('.check-item');
+    var observaciones = document.querySelectorAll('.obs-item');
+    for (var i = 0; i < checkboxes.length; i++) {
+        items.push({
+            id_inventario: parseInt(checkboxes[i].dataset.id),
+            id_articulo: parseInt(checkboxes[i].dataset.idArticulo),
+            cantidad: parseInt(checkboxes[i].dataset.cantidad),
+            revisado: checkboxes[i].checked,
+            observacion: observaciones[i].value
+        });
+    }
+    var revisados = items.filter(function(it) { return it.revisado; }).length;
+    var conNovedad = items.filter(function(it) { return !it.revisado || it.observacion.trim() !== ''; }).length;
     var ambienteId = {{ ambiente.id|tojson }};
     var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     
-    fetch('/inventario/checklist_general/' + ambienteId, {
+    fetch('/inventario/checklist_item/' + ambienteId, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': csrfToken
         },
-        body: JSON.stringify({observaciones: observaciones})
+        body: JSON.stringify({items: items})
     })
-    .then(function() { 
-        alert('Checklist realizado exitosamente'); 
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+        alert(d.message || 'Checklist enviado');
+        cerrarModalChecklist();
     })
-    .catch(function() { alert('Error en checklist'); });
+    .catch(function() { alert('Error al enviar checklist'); });
 }
 </script>
 
