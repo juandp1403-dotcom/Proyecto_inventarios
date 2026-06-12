@@ -114,9 +114,18 @@
             btn.textContent = 'Registrando...';
 
             try {
+                const formData = new FormData(this);
+                const jsonData = {};
+                const csrfToken = formData.get('csrf_token');
+                formData.forEach((value, key) => { jsonData[key] = value; });
+
                 const response = await fetch(this.action, {
                     method: 'POST',
-                    body: new FormData(this)
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify(jsonData)
                 });
 
                 const data = await response.json();

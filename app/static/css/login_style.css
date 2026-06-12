@@ -1,0 +1,84 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #8DD7F2 0%, #9268F0 100%);
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+}
+
+.login-page {
+    width: 100%;
+}
+
+.login-card {
+    border: 1px solid #28a745;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 480px;
+}
+
+.login-card .card-body {
+    padding: 2rem;
+}
+
+.login-card h3 {
+    font-weight: 700;
+    color: #1f1f1f;
+}
+
+.login-card .form-control,
+.login-card .form-select {
+    border-radius: 6px;
+    padding: 10px 12px;
+    border: 1px solid #ced4da;
+    transition: all 0.3s ease;
+}
+
+.login-card .form-control:focus,
+.login-card .form-select:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.login-card .btn-primary {
+    background-color: #28a745;
+    border-color: #28a745;
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 10px 16px;
+    transition: all 0.3s ease;
+}
+
+.login-card .btn-primary:hover {
+    background-color: #218838;
+    border-color: #218838;
+    transform: scale(1.02);
+}
+
+.login-card .btn-primary:disabled {
+    background-color: #28a745;
+    border-color: #28a745;
+    opacity: 0.65;
+    transform: none;
+}
+
+.login-card hr {
+    border-color: #28a745;
+    opacity: 0.3;
+}
+
+.login-card a {
+    color: #28a745;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.login-card a:hover {
+    color: #218838;
+    text-decoration: underline;
+}
+
+.login-card .alert {
+    border-radius: 8px;
+}
