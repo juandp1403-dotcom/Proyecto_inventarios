@@ -57,6 +57,12 @@ def logout_usuario():
     return redirect(url_for('dashboard'))
 
 
+@usuario_bp.route('/registrar', methods=['GET'])
+def registrar_usuario():
+    """Página pública de registro de nuevo usuario."""
+    return render_template('usuario/registrar.html')
+
+
 @usuario_bp.route('/crear', methods=['GET', 'POST'])
 def crear_usuario():
     if request.method == 'GET':
