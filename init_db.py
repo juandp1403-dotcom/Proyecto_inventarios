@@ -1,13 +1,32 @@
 import os
+import time
+from sqlalchemy.exc import OperationalError
 from werkzeug.security import generate_password_hash
 from app import create_app, db
 from app.models import *
+
+MAX_RETRIES = 5
+RETRY_DELAY = 2  # seconds
 
 def init_database(app=None):
     if app is None:
         app = create_app()
     with app.app_context():
-        db.create_all()
+        last_exception = None
+        for attempt in range(1, MAX_RETRIES + 1):
+            try:
+                db.create_all()
+                last_exception = None
+                break
+            except OperationalError as e:
+                last_exception = e
+                print(f"[!] Intento {attempt}/{MAX_RETRIES} - Base de datos no disponible: {e}")
+                if attempt < MAX_RETRIES:
+                    wait = RETRY_DELAY * attempt
+                    print(f"    Esperando {wait} segundos antes de reintentar...")
+                    time.sleep(wait)
+        if last_exception is not None:
+            raise last_exception
         
         from app.models.rol import Rol
         from app.models.usuario import Usuario
