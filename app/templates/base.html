@@ -19,12 +19,27 @@
             min-height: 100vh;
         }
         .app-header {
+            position: relative;
             background: #28a745; /* Verde secundario */
             color: white;
             transition: background-color 0.3s ease;
         }
         .app-header:hover {
             background: #218838; /* Verde más oscuro en hover */
+        }
+        .app-header-logo {
+            position: absolute;
+            top: 50%;
+            left: 24px;
+            transform: translateY(-50%);
+            height: 55px;
+            width: auto;
+        }
+        @media (max-width: 576px) {
+            .app-header-logo {
+                height: 36px;
+                left: 12px;
+            }
         }
         .app-sidebar {
             min-height: 100vh;
@@ -110,6 +125,7 @@
     
     {% block header %}
     <header class="app-header py-4 mb-4 shadow">
+        <img src="{{ url_for('static', filename='img/logosena.png') }}" alt="Logo SENA" class="app-header-logo">
         <div class="container-fluid">
             <div class="row align-items-center justify-content-center">
                 
@@ -117,7 +133,7 @@
                 <div class="col-12 text-center">
                     <a href="/" class="text-decoration-none text-white d-flex align-items-center justify-content-center">
                         <i class="fas fa-boxes fa-2x me-3"></i>
-                        <h1 class="h4 mb-0 fw-bold">Sistema de Inventario</h1>
+                        <h1 class="h4 mb-0 fw-bold">Sistema de Gestión de Inventarios</h1>
                     </a>
                 </div>
 
