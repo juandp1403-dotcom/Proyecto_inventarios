@@ -64,6 +64,12 @@ def init_database(app=None):
                 admin.password = generate_password_hash(admin.password)
                 db.session.commit()
                 print("[+] Contraseña del admin guardada en texto plano fue re-hasheada.")
+
+        for usuario in Usuario.query.all():
+            if usuario.password and not usuario.password.startswith(('pbkdf2:sha256:', 'argon2:', 'scrypt:', 'bcrypt:')):
+                usuario.password = generate_password_hash(usuario.password)
+        db.session.commit()
+        print("[+] Contraseñas heredadas re-hasheadas para los usuarios existentes.")
         
         print("Base de datos inicializada")
 

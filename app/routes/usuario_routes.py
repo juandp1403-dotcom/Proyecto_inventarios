@@ -11,6 +11,25 @@ from app.routes.auth_decorators import login_required
 usuario_bp = Blueprint('usuario', __name__, url_prefix='/usuario')
 
 
+def verify_password(stored_password, provided_password):
+    if not stored_password or not provided_password:
+        return False
+
+    if stored_password == provided_password:
+        return True
+
+    if isinstance(stored_password, str) and stored_password.startswith(('pbkdf2:sha256:', 'argon2:', 'scrypt:', 'bcrypt:')):
+        try:
+            return check_password_hash(stored_password, provided_password)
+        except Exception:
+            return False
+
+    try:
+        return check_password_hash(stored_password, provided_password)
+    except Exception:
+        return False
+
+
 def record_audit_login(user_id, email, success):
     login = Login_auditoria(
         id_usuario=user_id,
@@ -37,8 +56,8 @@ def login_usuario():
     if not usuario:
         return jsonify({'error': 'Usuario no encontrado'}), 404
 
-    # Verificar contraseña con hash
-    if not check_password_hash(usuario.password, password):
+    # Verificar contraseña con hash o texto plano (compatibilidad con datos heredados)
+    if not verify_password(usuario.password, password):
         return jsonify({'error': 'Credenciales inválidas'}), 401
 
     session['user_id'] = usuario.id
@@ -152,7 +171,7 @@ def login_auditor():
     usuario = Usuario.query.filter_by(email=email).first()
     success = False
 
-    if usuario and check_password_hash(usuario.password, password):
+    if usuario and verify_password(usuario.password, password):
         # Solo los auditores pueden usar esta ruta.
         rol = Rol.query.get(usuario.id_rol)
         if rol and rol.nombre.lower() == 'auditor':
