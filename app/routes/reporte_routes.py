@@ -1,4 +1,8 @@
-from flask import Blueprint, jsonify, request, render_template, session, redirect, url_for
+from io import BytesIO
+
+from flask import Blueprint, jsonify, request, render_template, session, redirect, url_for, send_file
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 from app import db
 from app.routes.auth_helpers import role_required, get_user_role
 from app.routes.auth_decorators import login_required
@@ -20,6 +24,52 @@ def listar_reportes():
     else:
         reportes = Reporte.query.join(Ambiente).all()
     return render_template('reporte/list.html', reportes=reportes, current_role=role)
+
+
+@reporte_bp.route('/pdf', methods=['GET'])
+@login_required
+@role_required('admin', 'auditor', 'revisor', 'instructor', 'aprendiz')
+def descargar_reportes_pdf():
+    role = get_user_role()
+    if role in ['instructor', 'aprendiz']:
+        reportes = Reporte.query.join(Ambiente).filter(Reporte.id_usuario == session.get('user_id')).all()
+    else:
+        reportes = Reporte.query.join(Ambiente).all()
+
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    y = height - 50
+    pdf.setTitle('Reportes de inventario')
+    pdf.setFont('Helvetica-Bold', 16)
+    pdf.drawString(50, y, 'Reportes de inventario')
+    y -= 30
+    pdf.setFont('Helvetica', 10)
+
+    for reporte in reportes:
+        if y < 90:
+            pdf.showPage()
+            pdf.setFont('Helvetica', 10)
+            y = height - 50
+        ambiente = reporte.ambiente.nombre if reporte.ambiente else 'N/A'
+        fecha = reporte.fecha_creacion.strftime('%d/%m/%Y %H:%M:%S') if reporte.fecha_creacion else 'N/A'
+        pdf.setFont('Helvetica-Bold', 11)
+        pdf.drawString(50, y, f'Reporte #{reporte.id} - {reporte.tipo or "Sin tipo"}')
+        y -= 17
+        pdf.setFont('Helvetica', 10)
+        pdf.drawString(65, y, f'Ambiente: {ambiente}')
+        y -= 15
+        pdf.drawString(65, y, f'Fecha: {fecha}')
+        y -= 15
+        pdf.drawString(65, y, f'Filtros: {reporte.filtros or "Sin filtros"}')
+        y -= 25
+
+    if not reportes:
+        pdf.drawString(50, y, 'No hay reportes disponibles.')
+    pdf.save()
+    buffer.seek(0)
+    return send_file(buffer, mimetype='application/pdf', as_attachment=True,
+                     download_name='reportes_inventario.pdf')
 
 
 @reporte_bp.route('/crear', methods=['GET', 'POST'])

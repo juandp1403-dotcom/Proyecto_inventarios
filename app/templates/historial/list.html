@@ -10,6 +10,7 @@
                 <h2 class="card-title mb-3">Historial de Revisiones: {{ ambiente.nombre }}</h2>
                 <p class="text-muted">Registro de todas las acciones realizadas en este ambiente</p>
                 <a href="/inventario/ambiente/{{ ambiente.id }}" class="btn btn-outline-secondary btn-sm">Volver al inventario</a>
+                <a href="{{ url_for('historial.descargar_historial_pdf', ambiente_id=ambiente.id) }}" class="btn btn-outline-danger btn-sm ms-2">Descargar PDF</a>
             </div>
         </div>
     </div>
