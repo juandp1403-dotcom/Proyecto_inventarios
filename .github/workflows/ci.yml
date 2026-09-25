@@ -1,0 +1,67 @@
+name: CI - Pruebas Automatizadas
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - 'Test-**'
+      - 'feature/**'
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - '.gitignore'
+  pull_request:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Pruebas en Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+
+    env:
+      PYTHONPATH: .
+      SECRET_KEY: ci-test-secret-key-67890
+      DATABASE_URL: sqlite:///:memory:
+      FLASK_ENV: testing
+
+    steps:
+      - name: Descargar código fuente
+        uses: actions/checkout@v4
+
+      - name: Configurar Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Actualizar gestor de paquetes pip
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Instalar dependencias del proyecto
+        run: |
+          pip install -r requirements.txt
+
+      - name: Ejecutar suite completa de pruebas
+        run: |
+          python run_tests.py
+
+      - name: Reportar resumen del job en GitHub Actions
+        if: always()
+        run: |
+          echo "### 🧪 Resumen de Pruebas Unitarias" >> $GITHUB_STEP_SUMMARY
+          echo "- **Python Version:** \`${{ matrix.python-version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Resultado del Job:** \`${{ job.status }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Ejecutor:** \`run_tests.py\` (cubriendo carpetas \`test/\` y \`tests/\`)" >> $GITHUB_STEP_SUMMARY
