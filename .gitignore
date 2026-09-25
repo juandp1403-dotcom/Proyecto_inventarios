@@ -18,6 +18,13 @@ instance/
 *.sqlite
 *.sqlite3
 
+# Pruebas y Cobertura
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.pytest_cache/
+
 # Variables de entorno
 .env
 .env.local
